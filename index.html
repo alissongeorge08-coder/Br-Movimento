@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description"
+        content="Brasil em Movimento - Aprenda danças regionais brasileiras com aulas interativas.">
+    <title>Brasil em Movimento</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="app-container">
+
+        <!-- ==================== MODAL DE LOGIN / CADASTRO ==================== -->
+        <div id="auth-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true"
+            aria-label="Autenticação">
+            <div class="modal-sheet">
+                <button class="modal-close-btn" onclick="app.closeAuthModal()" aria-label="Fechar">
+                    <i  class="ti ti-x"></i>
+                </button>
+
+                <!-- Tabs -->
+                <div class="auth-tabs" role="tablist">
+                    <button class="auth-tab active" id="tab-login" role="tab" aria-selected="true"
+                        onclick="app.switchAuthTab('login')">Entrar</button>
+                    <button class="auth-tab" id="tab-register" role="tab" aria-selected="false"
+                        onclick="app.switchAuthTab('register')">Criar Conta</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="form-login" class="auth-form" novalidate>
+                    <h2 class="auth-title">Bem-vindo de volta!</h2>
+                    <p class="auth-subtitle">Entre para continuar sua jornada.</p>
+
+                    <div class="input-group">
+                        <i  class="ti ti-mail"></i>
+                        <input type="email" id="login-email" placeholder="Seu e-mail" autocomplete="email" required />
+                    </div>
+                    <div class="input-group">
+                        <i  class="ti ti-lock"></i>
+                        <input type="password" id="login-password" placeholder="Sua senha"
+                            autocomplete="current-password" required />
+                        <button type="button" class="toggle-pw-btn" onclick="app.togglePassword('login-password', this)"
+                            aria-label="Mostrar senha">
+                            <i  class="ti ti-visibility"></i>
+                        </button>
+                    </div>
+                    <p id="login-error" class="auth-error" aria-live="polite"></p>
+                    <button type="submit" class="btn-primary" id="btn-login-submit">Entrar</button>
+                    <p class="auth-link">Esqueceu a senha? <a href="#">Recuperar acesso</a></p>
+                </form>
+
+                <!-- Register Form -->
+                <form id="form-register" class="auth-form hidden" novalidate>
+                    <h2 class="auth-title">Junte-se ao ritmo!</h2>
+                    <p class="auth-subtitle">Crie sua conta e comece a dançar.</p>
+
+                    <div class="input-group">
+                        <i  class="ti ti-user"></i>
+                        <input type="text" id="reg-name" placeholder="Seu nome" autocomplete="name" required />
+                    </div>
+                    <div class="input-group">
+                        <i  class="ti ti-mail"></i>
+                        <input type="email" id="reg-email" placeholder="Seu e-mail" autocomplete="email" required />
+                    </div>
+                    <div class="input-group">
+                        <i  class="ti ti-lock"></i>
+                        <input type="password" id="reg-password" placeholder="Crie uma senha"
+                            autocomplete="new-password" required />
+                        <button type="button" class="toggle-pw-btn" onclick="app.togglePassword('reg-password', this)"
+                            aria-label="Mostrar senha">
+                            <i  class="ti ti-visibility"></i>
+                        </button>
+                    </div>
+                    <p id="reg-error" class="auth-error" aria-live="polite"></p>
+                    <button type="submit" class="btn-primary" id="btn-register-submit">Criar Conta</button>
+                </form>
+            </div>
+        </div>
+        <!-- ==================== MODAL DE FEEDBACK FÍSICO ==================== -->
+        <div id="fitness-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true"
+            aria-label="Feedback da Aula">
+            <div class="modal-sheet" style="text-align: center; padding: 30px 20px 40px;">
+                <button class="modal-close-btn" onclick="app.closeFitnessFeedback()" aria-label="Fechar">
+                    <i  class="ti ti-x"></i>
+                </button>
+
+                <!-- Passo 1: Avaliação -->
+                <div id="fitness-step-eval">
+                    <i  class="ti ti-circle-check-filled"
+                        style="font-size: 48px; color: var(--primary); margin-bottom: 12px; display: block;"></i>
+                    <h2 class="auth-title" style="margin-bottom: 8px;">Aula Concluída!</h2>
+                    <p class="auth-subtitle">Como foi a sua experiência?</p>
+
+                    <div style="margin: 24px 0; padding: 16px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+                        <p style="font-weight: 600; font-size: 1rem; margin-bottom: 12px; color: var(--text-main);">A dificuldade foi adequada?</p>
+                        <div style="display: flex; gap: 12px; justify-content: center;">
+                            <button class="feedback-btn feedback-btn--yes" id="btn-diff-yes" onclick="app.rateDifficulty(true)" style="flex: 1; padding: 12px;">
+                                <i  class="ti ti-thumb-up"></i> Sim
+                            </button>
+                            <button class="feedback-btn feedback-btn--no" id="btn-diff-no" onclick="app.rateDifficulty(false)" style="flex: 1; padding: 12px;">
+                                <i  class="ti ti-thumb-down"></i> Não
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="fitness-stars-container" style="margin-bottom: 24px; background: rgba(0,0,0,0.02); padding: 16px; border-radius: 12px;">
+                        <p style="font-weight: 600; font-size: 1rem; margin-bottom: 12px; color: var(--text-main);">Avalie seu desempenho motor:</p>
+                        <div class="fitness-stars" role="radiogroup" aria-label="Nível de aptidão de 1 a 5">
+                            <button class="star-btn" data-val="1" onclick="app.rateFitness(1)" aria-checked="false"
+                                role="radio" aria-label="1 estrela"><i  class="ti ti-star-filled"></i></button>
+                            <button class="star-btn" data-val="2" onclick="app.rateFitness(2)" aria-checked="false"
+                                role="radio" aria-label="2 estrelas"><i  class="ti ti-star-filled"></i></button>
+                            <button class="star-btn" data-val="3" onclick="app.rateFitness(3)" aria-checked="false"
+                                role="radio" aria-label="3 estrelas"><i  class="ti ti-star-filled"></i></button>
+                            <button class="star-btn" data-val="4" onclick="app.rateFitness(4)" aria-checked="false"
+                                role="radio" aria-label="4 estrelas"><i  class="ti ti-star-filled"></i></button>
+                            <button class="star-btn" data-val="5" onclick="app.rateFitness(5)" aria-checked="false"
+                                role="radio" aria-label="5 estrelas"><i  class="ti ti-star-filled"></i></button>
+                        </div>
+                        <div class="fitness-label" id="fitness-label" style="font-size: 0.9rem; margin-top: 12px; color: var(--primary);">Selecione as estrelas</div>
+                    </div>
+
+                    <button class="btn-primary" onclick="app.submitFitnessFeedback()" id="btn-fitness-submit"
+                        disabled>Salvar & Continuar</button>
+                </div>
+
+                <!-- Passo 2: Share -->
+                <div id="fitness-step-share" style="display: none;">
+                    <i  class="ti ti-social-leaderboard"
+                        style="font-size: 56px; color: var(--primary); margin-bottom: 16px; display: block;"></i>
+                    <h2 class="auth-title" style="margin-bottom: 12px;">Progresso Salvo! 🎉</h2>
+                    <p class="auth-subtitle" style="margin-bottom: 24px;">Compartilhe sua evolução e destranque a conquista Influenciador Junino!</p>
+                    
+                    <button class="btn-primary" onclick="app.shareProgress()" style="margin-bottom: 16px; background: linear-gradient(135deg, #e1306c 0%, #f56040 100%); border: none;">
+                        <i  class="ti ti-share"></i> Compartilhar 📸
+                    </button>
+                    <button class="btn-outline" onclick="app.closeFitnessFeedback()">Continuar Trilha</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==================== VIEW: LANDING ==================== -->
+        <section id="view-landing" class="view active" aria-label="Boas-vindas">
+            <div class="hero" role="img" aria-label="Dançarinos de Quadrilha em movimento">
+                <div class="hero-overlay"></div>
+                <header class="hero-content">
+                    <h1>Brasil em Movimento</h1>
+                    <button class="btn-primary" onclick="app.navigate('home')" id="cta-explorar">
+                        <i  class="ti ti-compass"></i>
+                        Explorar Ritmos
+                    </button>
+                </header>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW: HOME ==================== -->
+        <section id="view-home" class="view" aria-label="Página inicial">
+            <main class="home-content">
+
+                <!-- ===== SOBRE ===== -->
+                <h2 class="section-title" style="margin-top: 16px;">Sobre o projeto</h2>
+                <div class="resume-card" onclick="app.navigate('sobre')" role="button" tabindex="0"
+                    style="background: #fd5e29;">
+                    <div class="resume-info" style="text-align: center; width: 100%;">
+                        <h3 class="resume-title" style="font-size: 1.5rem; white-space: normal; font-weight: 700;">BR + Movimento</h3>
+                    </div>
+                </div>
+
+                <h2 class="section-title">Continue de onde parou</h2>
+                <div class="resume-card" id="resume-card" onclick="app.navigate('trilhas'); app.switchTrilhaTab('casal');"
+                    role="button" tabindex="0" aria-label="Continuar Trilhas"
+                    style="background: #0470dd;">
+                    <div class="resume-info" style="width: 100%;">
+                        <p class="resume-tag" id="resume-tag">QUADRILHA - CASAL</p>
+                        <h3 class="resume-title" id="resume-title" style="font-size: 1.6rem; white-space: normal;">Marcação Básica</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <span id="resume-time" style="font-size: 0.75rem; color: rgba(255,255,255,0.8);">Comece agora</span>
+                            <span id="resume-pct" style="font-size: 0.75rem; color: rgba(255,255,255,0.8);">0% concluído</span>
+                        </div>
+                        <div class="resume-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                            aria-valuemax="100" aria-label="0% concluído" style="margin-top: 8px;">
+                            <div class="resume-progress-fill" id="resume-progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="section-title">Danças em destaque</h2>
+                <div class="dance-grid" role="list">
+                    <article class="dance-card dance-card--yellow" role="listitem" onclick="app.navigate('quadrilha')">
+                        <div class="dance-card-img" aria-hidden="true">
+                            <span class="dance-card-badge">54 vídeos</span>
+                            <div class="dance-card-placeholder">
+                                <i class="ti ti-music" style="font-size: 32px; opacity: 0.4;"></i>
+                                <span style="font-size: 0.7rem; opacity: 0.4;">imagem/ilustração</span>
+                            </div>
+                        </div>
+                        <div class="dance-card-body">
+                            <h3>Quadrilha</h3>
+                        </div>
+                    </article>
+                    <article class="dance-card dance-card--pink" role="listitem">
+                        <div class="dance-card-img" aria-hidden="true">
+                            <span class="dance-card-badge">Em breve</span>
+                            <div class="dance-card-placeholder">
+                                <i class="ti ti-music" style="font-size: 32px; opacity: 0.4;"></i>
+                                <span style="font-size: 0.7rem; opacity: 0.4;">imagem/ilustração</span>
+                            </div>
+                        </div>
+                        <div class="dance-card-body">
+                            <p class="dance-card-sub">Uma nova jornada</p>
+                            <h3>Em breve</h3>
+                        </div>
+                    </article>
+                    <article class="dance-card dance-card--green" role="listitem">
+                        <div class="dance-card-img" aria-hidden="true">
+                            <span class="dance-card-badge">Em breve</span>
+                            <div class="dance-card-placeholder">
+                                <i class="ti ti-music" style="font-size: 32px; opacity: 0.4;"></i>
+                                <span style="font-size: 0.7rem; opacity: 0.4;">imagem/ilustração</span>
+                            </div>
+                        </div>
+                        <div class="dance-card-body">
+                            <p class="dance-card-sub">Uma nova jornada</p>
+                            <h3>Em breve</h3>
+                        </div>
+                    </article>
+                    <article class="dance-card dance-card--maroon" role="listitem">
+                        <div class="dance-card-img" aria-hidden="true">
+                            <span class="dance-card-badge">Em breve</span>
+                            <div class="dance-card-placeholder">
+                                <i class="ti ti-music" style="font-size: 32px; opacity: 0.4;"></i>
+                                <span style="font-size: 0.7rem; opacity: 0.4;">imagem/ilustração</span>
+                            </div>
+                        </div>
+                        <div class="dance-card-body">
+                            <p class="dance-card-sub">Uma nova jornada</p>
+                            <h3>Em breve</h3>
+                        </div>
+                    </article>
+                </div>
+            </main>
+        </section>
+
+        <!-- ==================== VIEW: TRILHAS ==================== -->
+        <section id="view-trilhas" class="view" aria-label="Trilhas de aprendizado">
+            <header class="app-header">
+                <h2>Trilhas</h2>
+                <p class="header-sub">Sua jornada pelo ritmo</p>
+            </header>
+
+            <!-- Dance selector tabs -->
+            <div class="trilhas-tabs">
+                <button class="trilha-tab active" id="ttab-cavalheiro" onclick="app.switchTrilhaTab('cavalheiro')">
+                    <i class="ti ti-user" style="margin-right: 4px;"></i> Cavalheiro
+                </button>
+                <button class="trilha-tab" id="ttab-dama" onclick="app.switchTrilhaTab('dama')">
+                    <i class="ti ti-woman" style="margin-right: 4px;"></i> Dama
+                </button>
+                <button class="trilha-tab" id="ttab-casal" onclick="app.switchTrilhaTab('casal')">
+                    <i class="ti ti-users" style="margin-right: 4px;"></i> Casal
+                </button>
+            </div>
+
+            <div class="trilhas-dino-progress" style="margin: 0 16px 24px; padding: 12px 16px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); text-align: center;">
+                <p style="font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Sua Jornada</p>
+                <div style="position: relative; width: 100%; height: 2px; background: rgba(0,0,0,0.1); margin: 20px 0 10px;">
+                    <div id="dino-progress-fill" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--primary); transition: width 0.5s ease;"></div>
+                    
+                    <div style="position: absolute; left: 0%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-horse-toy" style="color: #795548;"></i></div>
+                    <div style="position: absolute; left: 25%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-cactus" style="color: #4CAF50;"></i></div>
+                    <div style="position: absolute; left: 50%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-sun-filled" style="color: #FFB300;"></i></div>
+                    <div style="position: absolute; left: 75%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-flame" style="color: #FF5722;"></i></div>
+                    <div style="position: absolute; left: 100%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-trophy-filled" style="color: #FFD700;"></i></div>
+                </div>
+            </div>
+
+            <main class="trilhas-content" id="trilhas-container">
+                <!-- Conteúdo renderizado dinamicamente pelo JS -->
+            </main>
+        </section>
+
+        <!-- ==================== VIEW: EXPERIENCE (VIDEO) ==================== -->
+        <section id="view-experience" class="view video-mode" aria-label="Aula em vídeo">
+            <div class="video-container">
+
+                <!-- Video background / placeholder -->
+                <video class="video-player" id="main-video" playsinline preload="metadata" poster="image/video-bg.png">
+                    <source id="video-source" src="" type="video/mp4">
+                    Seu navegador não suporta vídeo.
+                </video>
+
+                <!-- Tap zone: toque mostra controles; duplo-toque ou botão no centro pausa -->
+                <button class="video-tap-overlay" id="video-tap-btn" onclick="app.handleVideoTap()"
+                    aria-label="Mostrar controles / pausar vídeo">
+                    <div class="play-pause-icon" id="play-pause-icon">
+                        <i  class="ti ti-player-pause-filled"></i>
+                    </div>
+                </button>
+                <!-- ── Toda a UI do player ── -->
+                <div class="player-ui controls-visible" id="player-ui">
+                    <!-- Top bar -->
+                    <div class="video-topbar">
+                        <button class="back-btn" onclick="app.navigateBack()" aria-label="Voltar">
+                            <i  class="ti ti-arrow-left"></i>
+                        </button>
+                        <div class="video-title-top">
+                            <p id="video-dance-tag">Quadrilha</p>
+                            <h4 id="video-lesson-top-title">Anavantú e Anarriê</h4>
+                        </div>
+                        <button class="control-btn" id="btn-mirror" onclick="app.toggleMirror()" aria-label="Espelho"
+                            aria-pressed="false">
+                            <i  class="ti ti-flip"></i>
+                        </button>
+                    </div>
+
+                    <!-- Side controls -->
+                    <div class="video-overlay-controls" role="toolbar" aria-label="Controles de vídeo">
+                        <button class="control-btn" id="btn-loop" onclick="app.toggleLoop()" aria-label="Repetir Vídeo" aria-pressed="false">
+                            <i  class="ti ti-repeat"></i>
+                            <small>Loop</small>
+                        </button>
+                        <button class="control-btn" id="btn-quality" onclick="app.toggleQualityPanel()" aria-label="Qualidade" aria-pressed="false">
+                            <i  class="ti ti-hd"></i>
+                            <small>Qualidade</small>
+                        </button>
+                        <button class="control-btn" id="btn-tips" onclick="app.toggleTips()" aria-label="Dicas"
+                            aria-pressed="false">
+                            <i  class="ti ti-bulb"></i>
+                            <small>Dicas</small>
+                        </button>
+                    </div>
+
+                    <!-- Bottom player bar -->
+                    <footer class="video-bottom-bar">
+                        <!-- Lesson info row -->
+                        <div class="player-lesson-row">
+                            <div class="lesson-info">
+                                <h3 id="current-lesson-title">Anavantú e Anarriê</h3>
+                                <p id="current-lesson-sub">Intermediário • 5 min</p>
+                            </div>
+                            <button class="btn-check" onclick="app.openFitnessFeedback()" aria-label="Concluir aula">
+                                <i  class="ti ti-check"></i>
+                            </button>
+                        </div>
+
+                        <!-- Progress track -->
+                        <div class="player-progress">
+                            <div class="player-track">
+                                <div class="player-fill" id="player-fill"></div>
+                                <div class="player-thumb" id="player-thumb"></div>
+                            </div>
+                            <div class="player-times">
+                                <span id="player-current">0:00</span>
+                                <span id="player-total">5:00</span>
+                            </div>
+                        </div>
+
+                        <!-- Controls row — centrado -->
+                        <div class="player-controls">
+                            <button class="player-btn" onclick="app.seekBack()" aria-label="Voltar 10s">
+                                <i  class="ti ti-replay-10"></i>
+                            </button>
+                            <button class="player-btn player-btn--main" id="main-play-btn" onclick="event.stopPropagation(); app.togglePlay()"
+                                aria-label="Pausar">
+                                <i  class="ti ti-player-pause-filled"></i>
+                            </button>
+                            <button class="player-btn" onclick="app.seekForward()" aria-label="Avançar 10s">
+                                <i  class="ti ti-forward-10"></i>
+                            </button>
+                        </div>
+                    </footer>
+
+                </div><!-- /player-ui -->
+
+                <!-- Posture tips panel (fora do player-ui para não sumir junto) -->
+                <aside class="posture-tips-panel" id="posture-tips" aria-hidden="true">
+                    <h4><i  class="ti ti-bulb"></i> Dica de Postura</h4>
+                    <p>Mantenha as costas retas e o peso na ponta dos pés para maior agilidade nos giros.</p>
+                </aside>
+
+                <!-- Quality selector panel -->
+                <aside class="quality-panel" id="quality-panel" aria-hidden="true">
+                    <h4><i  class="ti ti-hd"></i> Qualidade</h4>
+                    <div class="quality-options" role="radiogroup" aria-label="Selecionar qualidade">
+                        <button class="quality-opt active" data-quality="auto" onclick="app.setVideoQuality('auto')" role="radio" aria-checked="true">
+                            <span class="quality-opt-label">Automático</span>
+                            <span class="quality-opt-desc">Ajusta conforme sua conexão</span>
+                            <i  class="ti ti-circle-check-filled"></i>
+                        </button>
+                        <button class="quality-opt" data-quality="1080p" onclick="app.setVideoQuality('1080p')" role="radio" aria-checked="false">
+                            <span class="quality-opt-label">1080p <span class="quality-tag" style="background: #8b5cf6;">FHD</span></span>
+                            <span class="quality-opt-desc">Alta Definição</span>
+                            <i  class="ti ti-circle-check-filled"></i>
+                        </button>
+                        <button class="quality-opt" data-quality="720p" onclick="app.setVideoQuality('720p')" role="radio" aria-checked="false">
+                            <span class="quality-opt-label">720p <span class="quality-tag">HD</span></span>
+                            <span class="quality-opt-desc">Qualidade padrão</span>
+                            <i  class="ti ti-circle-check-filled"></i>
+                        </button>
+                        <button class="quality-opt" data-quality="480p" onclick="app.setVideoQuality('480p')" role="radio" aria-checked="false">
+                            <span class="quality-opt-label">480p</span>
+                            <span class="quality-opt-desc">Economia de dados</span>
+                            <i  class="ti ti-circle-check-filled"></i>
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Removed Difficulty Feedback Bubble -->
+
+            </div>
+        </section>
+
+        <!-- ==================== VIEW: PROFILE ==================== -->
+        <section id="view-profile" class="view" aria-label="Perfil do usuário">
+            <header class="app-header app-header--profile">
+                <h2 id="profile-header-title">Meu Perfil</h2>
+                <div class="profile-header-actions">
+                    <!-- Settings button (only when logged in) -->
+                    <button class="icon-btn" id="btn-settings" onclick="app.navigate('settings')" style="display:none"
+                        aria-label="Configurações">
+                        <i  class="ti ti-settings"></i>
+                    </button>
+                    <!-- Logout button (only when logged in) -->
+                    <button class="icon-btn icon-btn--danger" id="btn-logout" onclick="app.logout()"
+                        style="display:none" aria-label="Sair">
+                        <i  class="ti ti-logout"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- ---- State: Logged OUT ---- -->
+            <div id="profile-guest" class="profile-guest-state">
+                <div class="guest-hero">
+                    <div class="guest-avatar-ring">
+                        <i  class="ti ti-user"></i>
+                    </div>
+                    <h3>Entre para dançar!</h3>
+                    <p>Salve seu progresso, colecione medalhas e acompanhe sua evolução.</p>
+                </div>
+                <div class="guest-features">
+                    <div class="guest-feature">
+                        <i  class="ti ti-trophy"></i>
+                        <p>Conquistas e Medalhas</p>
+                    </div>
+                    <div class="guest-feature">
+                        <i  class="ti ti-sync"></i>
+                        <p>Progresso Salvo</p>
+                    </div>
+                    <div class="guest-feature">
+                        <i  class="ti ti-group"></i>
+                        <p>Comunidade</p>
+                    </div>
+                </div>
+                <div class="guest-cta">
+                    <button class="btn-primary" onclick="app.openAuthModal('register')" id="btn-criar-conta">Criar Conta
+                        Grátis</button>
+                    <button class="btn-secondary" onclick="app.quickLogin()" id="btn-entrar">Já tenho uma conta</button>
+                    <button class="btn-secondary btn-educator" onclick="app.quickEducatorLogin()" id="btn-entrar-educador">
+                        <i  class="ti ti-school"></i> Acesso Educador
+                    </button>
+                </div>
+            </div>
+
+            <!-- ---- State: Logged IN ---- -->
+            <main id="profile-logged-in" class="profile-content" style="display:none">
+
+                <!-- User hero card -->
+                <div class="profile-hero-card">
+                    <div class="avatar-wrapper">
+                        <div class="avatar">
+                            <i  class="ti ti-user" aria-hidden="true"></i>
+                        </div>
+                        <div class="level-ring" aria-hidden="true"></div>
+                    </div>
+                    <div class="user-info">
+                        <h3 id="user-display-name">Ana Paula</h3>
+                        <p class="user-email" id="user-display-email">ana@sertaodanca.com</p>
+                        <div class="level-badge">
+                            <i  class="ti ti-medal"></i>
+                            <span id="user-title-badge">Iniciante do Salão</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <h3 class="section-title">Meu Desempenho</h3>
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <i  class="ti ti-trophy-filled" aria-hidden="true"></i>
+                        <h4 id="user-level">Lvl 1</h4>
+                        <p>Nível<br>Atual</p>
+                    </div>
+                    <div class="stat-card">
+                        <i  class="ti ti-flame-filled" aria-hidden="true"></i>
+                        <h4 id="stat-lessons">0</h4>
+                        <p>Aulas<br>Avaliadas</p>
+                    </div>
+                    <div class="stat-card">
+                        <i  class="ti ti-star-filled" aria-hidden="true"></i>
+                        <h4 id="stat-stars">0</h4>
+                        <p>Estrelas<br>Ganhas</p>
+                    </div>
+                </div>
+
+                <!-- Titles Gallery -->
+                <h3 class="section-title">Meus Títulos</h3>
+                <div class="titles-gallery" style="margin-bottom: 24px; padding: 0 16px; display: flex; gap: 8px; flex-wrap: wrap;" id="profile-titles">
+                    <!-- Títulos renderizados pelo JS -->
+                </div>
+
+                <!-- Trophies Button -->
+                <section class="trophies-section" aria-label="Troféus" style="margin-bottom: 24px;">
+                    <div class="dance-progress-list">
+                        <div class="dance-progress-item" style="justify-content: center;"
+                            onclick="app.navigate('trophies')">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="dp-icon" style="background: rgba(255,219,88,0.2); color: var(--primary);">
+                                    <i class="ti ti-trophy"></i>
+                                </div>
+                                <span class="dp-name" style="font-size: 1.05rem;">Meus Troféus</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Removido Progresso Fantasma -->
+            </main>
+
+            <!-- ---- State: Logged IN (Educator) ---- -->
+            <main id="profile-educator-in" class="profile-content" style="display:none">
+
+                <!-- Educator hero card -->
+                <div class="profile-hero-card educator-hero">
+                    <div class="avatar-wrapper">
+                        <div class="avatar educator-avatar">
+                            <i  class="ti ti-school" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <h3 id="educator-display-name">Prof. Mestre Vitalino</h3>
+                        <p class="user-email" id="educator-display-email">prof@sertaodanca.com</p>
+                        <div class="level-badge educator-badge">
+                            <i  class="ti ti-verified"></i>
+                            <span>Administrador / Criador</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Educator Actions -->
+                <div class="educator-actions">
+                    <button class="btn-primary" onclick="alert('Funcionalidade em desenvolvimento!')">
+                        <i  class="ti ti-add-circle"></i>
+                        Criar Nova Aula
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <h3 class="section-title">Visão Geral da Turma</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i  class="ti ti-groups" aria-hidden="true"></i>
+                        <h4>1.204</h4>
+                        <p>Alunos<br>Ativos</p>
+                    </div>
+                    <div class="stat-card">
+                        <i  class="ti ti-play-lesson" aria-hidden="true"></i>
+                        <h4>54</h4>
+                        <p>Aulas<br>Publicadas</p>
+                    </div>
+                    <div class="stat-card">
+                        <i  class="ti ti-monitoring" aria-hidden="true"></i>
+                        <h4>82%</h4>
+                        <p>Taxa de<br>Conclusão</p>
+                    </div>
+                    <div class="stat-card">
+                        <i  class="ti ti-star-filled" aria-hidden="true"></i>
+                        <h4>4.9</h4>
+                        <p>Avaliação<br>Média</p>
+                    </div>
+                </div>
+
+                <!-- Recent Activity List -->
+                <section class="dance-progress-section">
+                    <h3 class="section-title">Aulas Mais Acessadas</h3>
+                    <div class="dance-progress-list">
+                        <div class="dance-progress-item">
+                            <div class="dp-icon dp-icon--quadrilha">🎪</div>
+                            <div class="dp-info">
+                                <div class="dp-header">
+                                    <h4>O Túnel (Trabalho em grupo)</h4>
+                                    <span>342 acessos hoje</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 85%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dance-progress-item">
+                            <div class="dp-icon dp-icon--xaxado">🥾</div>
+                            <div class="dp-info">
+                                <div class="dp-header">
+                                    <h4>Xaxado para Mobilidade</h4>
+                                    <span>215 acessos hoje</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 60%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+        </section>
+
+        <!-- ==================== VIEW: HISTORY ==================== -->
+        <section id="view-history" class="view" aria-label="Histórico de Aulas">
+            <header class="app-header">
+                <button class="back-btn-inline" onclick="app.navigate('profile')" aria-label="Voltar ao perfil">
+                    <i  class="ti ti-arrow-left"></i>
+                </button>
+                <h2>Meu Histórico</h2>
+            </header>
+            <main class="dance-detail-content" style="padding-top: 20px;">
+                <p class="dance-description" style="padding: 0; margin-bottom: 24px;">Aqui você acompanha todas as aulas
+                    que já realizou e a avaliação da sua autonomia motora em cada uma.</p>
+
+
+                <div id="trilhas-container">
+                    <!-- Dynamic Modules inserted here -->
+                </div>
+            </main>
+        </section>
+
+        <!-- ==================== VIEW: TROPHIES (GALLERY) ==================== -->
+        <section id="view-trophies" class="view" aria-label="Meus Troféus">
+            <header class="app-header">
+                <button class="back-btn-inline" onclick="app.navigate('profile')" aria-label="Voltar ao perfil">
+                    <i  class="ti ti-arrow-left"></i>
+                </button>
+                <h2>Minhas Conquistas</h2>
+            </header>
+            <main class="dance-detail-content" style="padding-top: 20px; padding-bottom: 80px;">
+                <p class="dance-description" style="text-align: center; margin-bottom: 24px;">Toque em um troféu para
+                    abrir a inspeção 3D e descobrir como conquistá-lo.</p>
+
+                <h3 class="section-title" style="font-size: 1.1rem; padding: 0 16px; margin-bottom: 12px;">Galeria de Troféus</h3>
+                <div class="trophies-gallery" style="margin-bottom: 32px; flex-wrap: wrap; justify-content: center; gap: 16px;" id="trophies-all">
+                    <!-- Dynamic Trophies injected here -->
+                </div>
+            </main>
+        </section>
+
+        <!-- ==================== MODAL: TROPHY INSPECTION ==================== -->
+        <div id="trophy-inspection-modal" class="modal-overlay" aria-hidden="true"
+            style="align-items: center; justify-content: center; padding: 0;">
+            <div class="trophy-fullscreen">
+                <button class="modal-close-btn"
+                    style="position: absolute; top: 40px; left: 20px; z-index: 100; color: white; background: rgba(0,0,0,0.3); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"
+                    onclick="app.closeTrophyInspection()" aria-label="Fechar Inspeção">
+                    <i  class="ti ti-x"></i>
+                </button>
+
+                <model-viewer id="fullscreen-trophy-viewer" src="image/Trofeu.glb" auto-rotate camera-controls
+                    environment-image="neutral" exposure="1" shadow-intensity="1">
+                </model-viewer>
+
+                <div class="trophy-fullscreen-info">
+                    <h2 id="fs-trophy-title">Troféu</h2>
+                    <p id="fs-trophy-desc">Descrição</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VIEW: SOBRE ==================== -->
+        <section id="view-sobre" class="view" aria-label="Sobre o Projeto">
+            <header class="app-header">
+                <button class="back-btn-inline" onclick="app.navigate('home')" aria-label="Voltar">
+                    <i  class="ti ti-arrow-left"></i>
+                </button>
+                <h2>Sobre</h2>
+            </header>
+            <main class="dance-detail-content" style="padding-top: 20px;">
+                <h3 style="margin-bottom: 12px; font-size: 1.5rem; color: var(--primary);">Brasil em Movimento</h3>
+
+                <p class="dance-description" style="padding: 0; margin-bottom: 16px;">O <strong>Brasil em
+                        Movimento</strong> é um ecossistema digital dedicado ao ensino de danças tradicionais
+                    brasileiras, concebido para unir a preservação das nossas tradições à promoção da saúde e do
+                    bem-estar. O aplicativo é parte do projeto <strong>DESIGN DE INTERFACES PARA PROBLEMAS REAIS:
+                        EXTENSÃO DIALÓGICA COM COMUNIDADES</strong>, que no semestre 1/2026, utiliza a dança como uma
+                    ferramenta fundamental de consciência corporal, integrando ritmos que atravessam o país — desde o
+                    rigor técnico e a cadência das danças gaúchas até a energia vibrante da quadrilha e do xaxado.
+                    Através de uma interface mobile-first, o aplicativo democratiza o acesso à atividade física,
+                    transformando o aprendizado em uma jornada imersiva onde o movimento melhora a mobilidade e a saúde
+                    mental, respeitando sempre a pluralidade cultural e o tempo de evolução de cada indivíduo.</p>
+
+                <p class="dance-description" style="padding: 0; margin-bottom: 24px;">A plataforma se destaca pelo seu
+                    desenvolvimento técnico e acadêmico, sendo fruto de uma colaboração interdisciplinar de impacto
+                    social. Este projeto é uma realização do <strong>Laboratório de Projeto de Interface</strong> em
+                    conjunto com o <strong>Laboratório de Audiovisual</strong>, ambos do curso de Desenho Industrial da
+                    UFSM, unindo a expertise em design de interface e produção de conteúdo dinâmico. A fundamentação
+                    rítmica e técnica dos movimentos conta com o apoio direto do <strong>Curso de Dança da
+                        UFSM</strong>, por meio do professor Jessé Cruz, garantindo que o ensino seja pedagogicamente
+                    sólido e culturalmente autêntico. Além disso, o aplicativo cumpre um papel vital na comunidade local
+                    através da colaboração com a <strong>Escola Margarida Lopes de Santa Maria</strong>, servindo como
+                    uma ferramenta de ensino sobre saúde e movimento para estudantes da rede pública.</p>
+
+                <p class="dance-description" style="padding: 0; margin-bottom: 32px; font-weight: 500;">Esta iniciativa
+                    reflete o compromisso com a inovação no design e o respeito ao patrimônio imaterial brasileiro,
+                    transformando o celular em um palco para a saúde, a tradição e o movimento.</p>
+
+                <h3 style="margin-bottom: 16px; color: var(--primary);">Equipe de Desenvolvimento</h3>
+
+                <div
+                    style="background: var(--bg-card); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 16px;">
+                    <h4
+                        style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
+                        Professores Orientadores</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                        <li>Débora Aita Gasparetto</li>
+                        <li>Danielle Difante Pedrozzo</li>
+                    </ul>
+                </div>
+
+                <div
+                    style="background: var(--bg-card); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 32px;">
+                    <h4
+                        style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
+                        Alunos e Pesquisadores</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                        <li><strong>Alisson George da Rosa Ferreira</strong></li>
+                        <li style="margin-top: 8px;"><strong>Rayssa Barcellos Da Silva</strong></li>
+                        <li style="margin-top: 8px;"><strong>Eduarda Dal Molin Marodim</strong></li>
+                        <li style="margin-top: 8px;"><strong>Vitoria Mello</strong></li>
+                    </ul>
+                </div>
+            </main>
+        </section>
+
+        <!-- ==================== VIEW: SETTINGS ==================== -->
+        <section id="view-settings" class="view" aria-label="Configurações">
+            <header class="app-header">
+                <button class="back-btn-inline" onclick="app.navigate('profile')" aria-label="Voltar ao perfil">
+                    <i  class="ti ti-arrow-left"></i>
+                </button>
+                <h2>Configurações</h2>
+            </header>
+
+            <div class="settings-content">
+
+                <!-- Group: Vídeo -->
+                <div class="settings-group">
+                    <p class="settings-group-label">Vídeo</p>
+
+
+                    <div class="settings-row settings-row--toggle">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-signal-cellular-alt"></i>
+                            <div>
+                                <span class="settings-row-title">Usar Dados Móveis</span>
+                                <span class="settings-row-sub">Baixar vídeos via 4G/5G</span>
+                            </div>
+                        </div>
+                        <button class="toggle-switch" id="toggle-mobile-data" role="switch" aria-checked="false"
+                            onclick="app.toggleSetting('mobile-data', this)">
+                            <span class="toggle-knob"></span>
+                        </button>
+                    </div>
+
+                    <div class="settings-row settings-row--toggle">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-skip-next"></i>
+                            <div>
+                                <span class="settings-row-title">Reprodução Automática</span>
+                                <span class="settings-row-sub">Próxima aula inicia sozinha</span>
+                            </div>
+                        </div>
+                        <button class="toggle-switch active" id="toggle-autoplay" role="switch" aria-checked="true"
+                            onclick="app.toggleSetting('autoplay', this)">
+                            <span class="toggle-knob"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group: Acessibilidade -->
+                <div class="settings-group">
+                    <p class="settings-group-label">Acessibilidade</p>
+
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-moon-stars"></i>
+                            <div>
+                                <span class="settings-row-title">Tema</span>
+                                <span class="settings-row-sub" id="lbl-theme">Sistema</span>
+                            </div>
+                        </div>
+                        <div class="seg-control" role="group" aria-label="Tema de cores">
+                            <button class="seg-btn active" id="st-system" onclick="app.setTheme('system', this)">
+                                <i class="ti ti-device-mobile" style="font-size: 14px;"></i>
+                            </button>
+                            <button class="seg-btn" id="st-light" onclick="app.setTheme('light', this)">
+                                <i class="ti ti-sun" style="font-size: 14px;"></i>
+                            </button>
+                            <button class="seg-btn" id="st-dark" onclick="app.setTheme('dark', this)">
+                                <i class="ti ti-moon" style="font-size: 14px;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-text-fields"></i>
+                            <div>
+                                <span class="settings-row-title">Tamanho da Letra</span>
+                                <span class="settings-row-sub" id="lbl-font">Normal</span>
+                            </div>
+                        </div>
+                        <div class="seg-control" role="group" aria-label="Tamanho da letra">
+                            <button class="seg-btn" id="sf-small" onclick="app.setFontSize('small',  this)">P</button>
+                            <button class="seg-btn active" id="sf-normal"
+                                onclick="app.setFontSize('normal', this)">M</button>
+                            <button class="seg-btn" id="sf-large" onclick="app.setFontSize('large',  this)">G</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-row settings-row--toggle">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-notifications"></i>
+                            <div>
+                                <span class="settings-row-title">Notificações</span>
+                                <span class="settings-row-sub">Lembretes de prática diária</span>
+                            </div>
+                        </div>
+                        <button class="toggle-switch active" id="toggle-notifs" role="switch" aria-checked="true"
+                            onclick="app.toggleSetting('notifs', this)">
+                            <span class="toggle-knob"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Group: Sobre -->
+                <div class="settings-group">
+                    <p class="settings-group-label">Sobre o App</p>
+
+                    <div class="settings-row settings-row--link" onclick="app.navigate('sobre')">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-info"></i>
+                            <span class="settings-row-title">Sobre o App</span>
+                        </div>
+                        <i  class="ti ti-chevron-right"></i>
+                    </div>
+
+                    <div class="settings-row settings-row--link">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-shield"></i>
+                            <span class="settings-row-title">Política de Privacidade</span>
+                        </div>
+                        <i  class="ti ti-chevron-right"></i>
+                    </div>
+
+                    <div class="settings-row settings-row--link">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-description"></i>
+                            <span class="settings-row-title">Termos de Uso</span>
+                        </div>
+                        <i  class="ti ti-chevron-right"></i>
+                    </div>
+
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <i  class="ti ti-deployed-code"></i>
+                            <div>
+                                <span class="settings-row-title">Versão</span>
+                                <span class="settings-row-sub">1.0.0 (build 42)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger: Sair -->
+                <div class="settings-group settings-group--danger">
+                    <button class="settings-danger-btn" onclick="app.logout(); app.navigate('profile');">
+                        <i  class="ti ti-logout"></i>
+                        Sair da conta
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== VIEW: QUADRILHA ==================== -->
+        <section id="view-quadrilha" class="view" aria-label="Quadrilha">
+            <div class="dance-hero dance-hero--quadrilha">
+                <div class="dance-hero-overlay"></div>
+                <button class="back-btn dance-back-btn" onclick="app.navigate('home')" aria-label="Voltar">
+                    <i  class="ti ti-arrow-left"></i>
+                </button>
+                <div class="dance-hero-content">
+                    <p class="hero-eyebrow">Festa Junina</p>
+                    <h1>Quadrilha</h1>
+                    <p class="hero-sub">A dança mais animada do São João.</p>
+                </div>
+            </div>
+
+            <main class="dance-detail-content">
+                <div class="dance-info-card">
+                    <div class="dance-info-item">
+                        <i  class="ti ti-groups"></i>
+                        <div><strong>Coletiva</strong>
+                            <p>Em grupo</p>
+                        </div>
+                    </div>
+                    <div class="dance-info-item">
+                        <i  class="ti ti-speed"></i>
+                        <div><strong>Animada</strong>
+                            <p>Ritmo rápido</p>
+                        </div>
+                    </div>
+                    <div class="dance-info-item">
+                        <i  class="ti ti-place"></i>
+                        <div><strong>Nordeste</strong>
+                            <p>Origem</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dance-about">
+                    <h2 class="section-title">Sobre a Dança</h2>
+                    <p class="dance-description">A Quadrilha é uma dança de salão de origem francesa que foi
+                        completamente reinventada. Com figuras como <em>anavantú</em>,
+                        <em>anarriê</em> e o <em>caracol</em>, ela celebra o amor, a festa e a identidade cultural
+                        durante os festejos juninos.
+                    </p>
+                </div>
+
+                <button class="btn-primary dance-cta" onclick="app.navigate('trilhas'); app.switchTrilhaTab('casal');" style="margin-top: 32px;">
+                    <i  class="ti ti-player-play-filled"></i>
+                    Começar Trilha
+                </button>
+            </main>
+        </section>
+
+        <!-- ==================== VIEW: XAXADO ==================== -->
+        <section id="view-xaxado" class="view" aria-label="Xaxado">
+            <div class="dance-hero dance-hero--xaxado">
+                <div class="dance-hero-overlay"></div>
+                <button class="back-btn dance-back-btn" onclick="app.navigate('home')" aria-label="Voltar">
+                    <i  class="ti ti-arrow-left"></i>
+                </button>
+                <div class="dance-hero-content">
+                    <p class="hero-eyebrow">Cultura Sertaneja</p>
+                    <h1>Xaxado</h1>
+                    <p class="hero-sub">A dança guerreira nascida no coração do Cangaço.</p>
+                </div>
+            </div>
+
+            <main class="dance-detail-content">
+                <div class="dance-info-card">
+                    <div class="dance-info-item">
+                        <i  class="ti ti-user"></i>
+                        <div><strong>Individual</strong>
+                            <p>Solo ou grupo</p>
+                        </div>
+                    </div>
+                    <div class="dance-info-item">
+                        <i  class="ti ti-speed"></i>
+                        <div><strong>Moderado</strong>
+                            <p>Ritmo constante</p>
+                        </div>
+                    </div>
+                    <div class="dance-info-item">
+                        <i  class="ti ti-place"></i>
+                        <div><strong>Sertão</strong>
+                            <p>Origem</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dance-about">
+                    <h2 class="section-title">Sobre a Dança</h2>
+                    <p class="dance-description">O Xaxado é uma dança masculina criada pelos cangaceiros de Lampião no
+                        início do século XX. Caracterizado por passos arrastados, sapateados e o característico
+                        movimento lateral dos pés, é hoje reconhecido como símbolo da resistência e da nossa identidade.
+                    </p>
+                </div>
+
+                <button class="btn-primary dance-cta" onclick="app.navigate('trilhas'); app.switchTrilhaTab('casal');" style="margin-top: 32px;">
+                    <i  class="ti ti-player-play-filled"></i>
+                    Começar Trilha
+                </button>
+            </main>
+        </section>
+
+        <!-- ==================== BOTTOM NAVIGATION ==================== -->
+        <nav id="bottom-nav" aria-label="Navegação principal">
+            <a href="#" class="nav-item active" onclick="app.navigate('home'); return false;" id="nav-home"
+                aria-label="Início" aria-current="page">
+                <i  class="ti ti-home" aria-hidden="true"></i>
+                <span>Início</span>
+            </a>
+            <a href="#" class="nav-item" onclick="app.navigate('trilhas'); return false;" id="nav-trilhas"
+                aria-label="Trilhas de aprendizado">
+                <i  class="ti ti-route" aria-hidden="true"></i>
+                <span>Trilhas</span>
+            </a>
+            <a href="#" class="nav-item" onclick="app.navigate('profile'); return false;" id="nav-profile"
+                aria-label="Perfil">
+                <i  class="ti ti-user" aria-hidden="true"></i>
+                <span>Perfil</span>
+            </a>
+        </nav>
+
+    </div>
+
+    <!-- 3D Model Viewer Script -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
