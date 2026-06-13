@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css">
+    <link href="css/main.css" rel="stylesheet">
 </head>
 
 <body>
@@ -106,7 +106,7 @@
                     <h2 class="auth-title" style="margin-bottom: 8px;">Aula Concluída!</h2>
                     <p class="auth-subtitle">Como foi a sua experiência?</p>
 
-                    <div style="margin: 24px 0; padding: 16px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="margin: 24px 0; padding: 16px; background: rgba(253,94,41,0.05); border-radius: 12px; border: 1px solid rgba(253,94,41,0.1);">
                         <p style="font-weight: 600; font-size: 1rem; margin-bottom: 12px; color: var(--text-main);">A dificuldade foi adequada?</p>
                         <div style="display: flex; gap: 12px; justify-content: center;">
                             <button class="feedback-btn feedback-btn--yes" id="btn-diff-yes" onclick="app.rateDifficulty(true)" style="flex: 1; padding: 12px;">
@@ -118,7 +118,7 @@
                         </div>
                     </div>
 
-                    <div class="fitness-stars-container" style="margin-bottom: 24px; background: rgba(0,0,0,0.02); padding: 16px; border-radius: 12px;">
+                    <div class="fitness-stars-container" style="margin-bottom: 24px; background: rgba(253,94,41,0.04); padding: 16px; border-radius: 12px;">
                         <p style="font-weight: 600; font-size: 1rem; margin-bottom: 12px; color: var(--text-main);">Avalie seu desempenho motor:</p>
                         <div class="fitness-stars" role="radiogroup" aria-label="Nível de aptidão de 1 a 5">
                             <button class="star-btn" data-val="1" onclick="app.rateFitness(1)" aria-checked="false"
@@ -149,7 +149,7 @@
                     <button class="btn-primary" onclick="app.shareProgress()" style="margin-bottom: 16px; background: linear-gradient(135deg, #e1306c 0%, #f56040 100%); border: none;">
                         <i  class="ti ti-share"></i> Compartilhar 📸
                     </button>
-                    <button class="btn-outline" onclick="app.closeFitnessFeedback()">Continuar Trilha</button>
+                    <button class="btn-secondary" onclick="app.closeFitnessFeedback()">Continuar Trilha</button>
                 </div>
             </div>
         </div>
@@ -157,14 +157,30 @@
 
         <!-- ==================== VIEW: LANDING ==================== -->
         <section id="view-landing" class="view active" aria-label="Boas-vindas">
-            <div class="hero" role="img" aria-label="Dançarinos de Quadrilha em movimento">
+            <div class="hero">
                 <div class="hero-overlay"></div>
                 <header class="hero-content">
-                    <h1>Brasil em Movimento</h1>
-                    <button class="btn-primary" onclick="app.navigate('home')" id="cta-explorar">
-                        <i  class="ti ti-compass"></i>
+
+                    <!-- ── Logo mark ── -->
+                    <div class="brand-logo" aria-label="BR + Movimento">
+                        <div class="brand-row">
+                            <span class="brand-br">BR</span>
+                            <div class="brand-plus" aria-hidden="true">
+                                <span></span><span class="bp-y"></span><span></span>
+                                <span class="bp-o"></span><span class="bp-g"></span><span class="bp-p"></span>
+                                <span></span><span class="bp-b"></span><span></span>
+                            </div>
+                        </div>
+                        <span class="brand-movimento">Movimento</span>
+                    </div>
+
+                    <p class="hero-sub">Aprenda as danças que fazem o Brasil dançar.</p>
+
+                    <button class="btn-landing-cta" onclick="app.navigate('home')" id="cta-explorar">
                         Explorar Ritmos
+                        <i class="ti ti-arrow-right"></i>
                     </button>
+
                 </header>
             </div>
         </section>
@@ -176,26 +192,26 @@
                 <!-- ===== SOBRE ===== -->
                 <h2 class="section-title" style="margin-top: 16px;">Sobre o projeto</h2>
                 <div class="resume-card" onclick="app.navigate('sobre')" role="button" tabindex="0"
-                    style="background: #fd5e29;">
-                    <div class="resume-info" style="text-align: center; width: 100%;">
-                        <h3 class="resume-title" style="font-size: 1.5rem; white-space: normal; font-weight: 700;">BR + Movimento</h3>
+                    style="background: #fd5e29; padding: 24px 20px;">
+                    <div class="resume-info" style="width: 100%;">
+                        <h3 class="resume-title" style="font-size: 2.2rem; white-space: normal; font-weight: 800; letter-spacing: -0.5px;">BR + Movimento</h3>
                     </div>
                 </div>
 
                 <h2 class="section-title">Continue de onde parou</h2>
                 <div class="resume-card" id="resume-card" onclick="app.navigate('trilhas'); app.switchTrilhaTab('casal');"
                     role="button" tabindex="0" aria-label="Continuar Trilhas"
-                    style="background: #0470dd;">
+                    style="background: #0470dd; padding: 24px 20px 20px;">
                     <div class="resume-info" style="width: 100%;">
-                        <p class="resume-tag" id="resume-tag">QUADRILHA - CASAL</p>
-                        <h3 class="resume-title" id="resume-title" style="font-size: 1.6rem; white-space: normal;">Marcação Básica</h3>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                            <span id="resume-time" style="font-size: 0.75rem; color: rgba(255,255,255,0.8);">Comece agora</span>
-                            <span id="resume-pct" style="font-size: 0.75rem; color: rgba(255,255,255,0.8);">0% concluído</span>
+                        <p class="resume-tag" id="resume-tag" style="margin-bottom: 4px; font-size: 0.65rem; font-weight: 700; opacity: 0.9; letter-spacing: 0.5px; text-transform: uppercase;">QUADRILHA - CASAL</p>
+                        <h3 class="resume-title" id="resume-title" style="font-size: 2.2rem; font-weight: 800; white-space: normal; letter-spacing: -0.5px; margin-bottom: 24px;">Marcação Básica</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px;">
+                            <span id="resume-time" style="font-size: 0.75rem; color: #fff;">Comece agora</span>
+                            <span id="resume-pct" style="font-size: 0.75rem; color: #fff;">0% concluído</span>
                         </div>
                         <div class="resume-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
-                            aria-valuemax="100" aria-label="0% concluído" style="margin-top: 8px;">
-                            <div class="resume-progress-fill" id="resume-progress-fill" style="width: 0%;"></div>
+                            aria-valuemax="100" style="height: 6px; background: rgba(0,0,0,0.25); border-radius: 4px; margin-bottom: 0;">
+                            <div class="resume-progress-fill" id="resume-progress-fill" style="width: 0%; height: 100%; background: #fff; border-radius: 4px; transition: width 0.5s ease;"></div>
                         </div>
                     </div>
                 </div>
@@ -203,51 +219,29 @@
                 <h2 class="section-title">Danças em destaque</h2>
                 <div class="dance-grid" role="list">
                     <article class="dance-card dance-card--yellow" role="listitem" onclick="app.navigate('quadrilha')">
-                        <div class="dance-card-img" aria-hidden="true">
+                        <div class="dance-card-img dance-card-img--quadrilha" aria-hidden="true">
                             <span class="dance-card-badge">54 vídeos</span>
-                            <div class="dance-card-placeholder">
-                                <i class="ti ti-music" style="font-size: 32px; opacity: 0.4;"></i>
-                                <span style="font-size: 0.7rem; opacity: 0.4;">imagem/ilustração</span>
-                            </div>
                         </div>
                         <div class="dance-card-body">
                             <h3>Quadrilha</h3>
                         </div>
                     </article>
                     <article class="dance-card dance-card--pink" role="listitem">
-                        <div class="dance-card-img" aria-hidden="true">
-                            <span class="dance-card-badge">Em breve</span>
-                            <div class="dance-card-placeholder">
-                                <i class="ti ti-music" style="font-size: 32px; opacity: 0.4;"></i>
-                                <span style="font-size: 0.7rem; opacity: 0.4;">imagem/ilustração</span>
-                            </div>
-                        </div>
+                        <div class="dance-card-img" aria-hidden="true"></div>
                         <div class="dance-card-body">
                             <p class="dance-card-sub">Uma nova jornada</p>
                             <h3>Em breve</h3>
                         </div>
                     </article>
                     <article class="dance-card dance-card--green" role="listitem">
-                        <div class="dance-card-img" aria-hidden="true">
-                            <span class="dance-card-badge">Em breve</span>
-                            <div class="dance-card-placeholder">
-                                <i class="ti ti-music" style="font-size: 32px; opacity: 0.4;"></i>
-                                <span style="font-size: 0.7rem; opacity: 0.4;">imagem/ilustração</span>
-                            </div>
-                        </div>
+                        <div class="dance-card-img" aria-hidden="true"></div>
                         <div class="dance-card-body">
                             <p class="dance-card-sub">Uma nova jornada</p>
                             <h3>Em breve</h3>
                         </div>
                     </article>
                     <article class="dance-card dance-card--maroon" role="listitem">
-                        <div class="dance-card-img" aria-hidden="true">
-                            <span class="dance-card-badge">Em breve</span>
-                            <div class="dance-card-placeholder">
-                                <i class="ti ti-music" style="font-size: 32px; opacity: 0.4;"></i>
-                                <span style="font-size: 0.7rem; opacity: 0.4;">imagem/ilustração</span>
-                            </div>
-                        </div>
+                        <div class="dance-card-img" aria-hidden="true"></div>
                         <div class="dance-card-body">
                             <p class="dance-card-sub">Uma nova jornada</p>
                             <h3>Em breve</h3>
@@ -277,16 +271,16 @@
                 </button>
             </div>
 
-            <div class="trilhas-dino-progress" style="margin: 0 16px 24px; padding: 12px 16px; background: rgba(0,0,0,0.03); border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); text-align: center;">
-                <p style="font-size: 0.8rem; font-weight: 600; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Sua Jornada</p>
-                <div style="position: relative; width: 100%; height: 2px; background: rgba(0,0,0,0.1); margin: 20px 0 10px;">
+            <div class="trilhas-dino-progress">
+                <p class="dino-journey-label">Sua Jornada</p>
+                <div style="position: relative; width: 100%; height: 2px; background: rgba(253,94,41,0.18); margin: 20px 0 10px;">
                     <div id="dino-progress-fill" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--primary); transition: width 0.5s ease;"></div>
-                    
-                    <div style="position: absolute; left: 0%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-horse-toy" style="color: #795548;"></i></div>
-                    <div style="position: absolute; left: 25%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-cactus" style="color: #4CAF50;"></i></div>
-                    <div style="position: absolute; left: 50%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-sun-filled" style="color: #FFB300;"></i></div>
-                    <div style="position: absolute; left: 75%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-flame" style="color: #FF5722;"></i></div>
-                    <div style="position: absolute; left: 100%; top: -14px; font-size: 18px; transform: translateX(-50%); background: #f8f6f0; padding: 0 4px; border-radius: 50%;"><i class="ti ti-trophy-filled" style="color: #FFD700;"></i></div>
+
+                    <div style="position: absolute; left: 0%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-horse-toy" style="color: var(--primary);"></i></div>
+                    <div style="position: absolute; left: 25%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-cactus" style="color: var(--accent-green);"></i></div>
+                    <div style="position: absolute; left: 50%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-sun-filled" style="color: var(--secondary);"></i></div>
+                    <div style="position: absolute; left: 75%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-flame" style="color: var(--primary);"></i></div>
+                    <div style="position: absolute; left: 100%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-trophy-filled" style="color: var(--secondary);"></i></div>
                 </div>
             </div>
 
@@ -359,20 +353,17 @@
                             </button>
                         </div>
 
-                        <!-- Progress track -->
+                        <!-- Progress track — draggable -->
                         <div class="player-progress">
-                            <div class="player-track">
+                            <div class="player-track" id="player-track">
                                 <div class="player-fill" id="player-fill"></div>
                                 <div class="player-thumb" id="player-thumb"></div>
                             </div>
-                            <div class="player-times">
-                                <span id="player-current">0:00</span>
-                                <span id="player-total">5:00</span>
-                            </div>
                         </div>
 
-                        <!-- Controls row — centrado -->
+                        <!-- Controls row with inline times -->
                         <div class="player-controls">
+                            <span class="player-time" id="player-current">0:00</span>
                             <button class="player-btn" onclick="app.seekBack()" aria-label="Voltar 10s">
                                 <i  class="ti ti-replay-10"></i>
                             </button>
@@ -383,6 +374,7 @@
                             <button class="player-btn" onclick="app.seekForward()" aria-label="Avançar 10s">
                                 <i  class="ti ti-forward-10"></i>
                             </button>
+                            <span class="player-time" id="player-total">0:00</span>
                         </div>
                     </footer>
 
@@ -507,7 +499,7 @@
                         <p>Nível<br>Atual</p>
                     </div>
                     <div class="stat-card">
-                        <i  class="ti ti-flame-filled" aria-hidden="true"></i>
+                        <i  class="ti ti-circle-check-filled" aria-hidden="true"></i>
                         <h4 id="stat-lessons">0</h4>
                         <p>Aulas<br>Avaliadas</p>
                     </div>
@@ -520,7 +512,7 @@
 
                 <!-- Titles Gallery -->
                 <h3 class="section-title">Meus Títulos</h3>
-                <div class="titles-gallery" style="margin-bottom: 24px; padding: 0 16px; display: flex; gap: 8px; flex-wrap: wrap;" id="profile-titles">
+                <div class="titles-gallery" id="profile-titles">
                     <!-- Títulos renderizados pelo JS -->
                 </div>
 
@@ -530,7 +522,7 @@
                         <div class="dance-progress-item" style="justify-content: center;"
                             onclick="app.navigate('trophies')">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="dp-icon" style="background: rgba(255,219,88,0.2); color: var(--primary);">
+                                <div class="dp-icon" style="background: rgba(254,208,45,0.2); color: var(--secondary);">
                                     <i class="ti ti-trophy"></i>
                                 </div>
                                 <span class="dp-name" style="font-size: 1.05rem;">Meus Troféus</span>
@@ -697,7 +689,7 @@
                 <h2>Sobre</h2>
             </header>
             <main class="dance-detail-content" style="padding-top: 20px;">
-                <h3 style="margin-bottom: 12px; font-size: 1.5rem; color: var(--primary);">Brasil em Movimento</h3>
+                <h3 style="margin-bottom: 12px; font-size: 1.5rem; color: var(--primary); font-weight: 800; letter-spacing: -0.5px;">Brasil em Movimento</h3>
 
                 <p class="dance-description" style="padding: 0; margin-bottom: 16px;">O <strong>Brasil em
                         Movimento</strong> é um ecossistema digital dedicado ao ensino de danças tradicionais
@@ -914,7 +906,7 @@
                 <div class="dance-hero-content">
                     <p class="hero-eyebrow">Festa Junina</p>
                     <h1>Quadrilha</h1>
-                    <p class="hero-sub">A dança mais animada do São João.</p>
+                    <p class="hero-sub">O coração que bate no peito do São João.</p>
                 </div>
             </div>
 
@@ -942,10 +934,10 @@
 
                 <div class="dance-about">
                     <h2 class="section-title">Sobre a Dança</h2>
-                    <p class="dance-description">A Quadrilha é uma dança de salão de origem francesa que foi
-                        completamente reinventada. Com figuras como <em>anavantú</em>,
-                        <em>anarriê</em> e o <em>caracol</em>, ela celebra o amor, a festa e a identidade cultural
-                        durante os festejos juninos.
+                    <p class="dance-description">Nascida nos salões europeus e reencarnada no calor do Nordeste, a
+                        Quadrilha é a alma do São João. Entre figuras como <em>anavantú</em>, <em>anarriê</em> e o
+                        <em>caracol</em>, cada passo carrega séculos de festa, amor e identidade — de um povo que
+                        recebeu uma dança e devolveu ao mundo uma celebração.
                     </p>
                 </div>
 
@@ -1030,7 +1022,7 @@
 
     <!-- 3D Model Viewer Script -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/main.js"></script>
 </body>
 
 </html>

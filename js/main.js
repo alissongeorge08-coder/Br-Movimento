@@ -1,6 +1,27 @@
 /* ====================================================
-   SERTÃO DANÇA — app.js
+   BR + MOVIMENTO — main.js
    ==================================================== */
+
+/* --------------- Configuração de Vídeos ---------------
+   Em produção, os vídeos ficam no Cloudflare R2 (CDN gratuito).
+   Em desenvolvimento local, são servidos da pasta videos/.
+
+   Após subir os vídeos no R2, cole a URL pública aqui:
+   ------------------------------------------------------ */
+const VIDEO_CONFIG = (() => {
+    const isLocal = location.hostname === 'localhost'
+                 || location.hostname === '127.0.0.1'
+                 || location.protocol === 'file:';
+
+    // ← Cole aqui a URL pública do seu bucket R2
+    // Exemplo: 'https://pub-abc123.r2.dev'
+    const R2_BASE_URL = 'https://SEU_BUCKET.r2.dev';
+
+    return {
+        isLocal,
+        baseUrl: isLocal ? 'videos' : R2_BASE_URL
+    };
+})();
 
 const app = {
 
@@ -109,10 +130,75 @@ const app = {
 
 
         this.switchTrilhaTab('cavalheiro');
+        this._initSeek();
         console.log('Brasil em Movimento v2 initialized.');
     },
 
+    /* ======================================================
+       SEEK (drag-to-scrub progress bar)
+       ====================================================== */
+    _initSeek() {
+        const track = document.getElementById('player-track');
+        if (!track || track._seekInit) return;
+        track._seekInit = true;
 
+        const getPct = (e) => {
+            const rect = track.getBoundingClientRect();
+            const clientX = (e.touches ? e.touches[0] : e).clientX;
+            return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+        };
+
+        const applySeek = (pct) => {
+            const video = document.getElementById('main-video');
+            const fill  = document.getElementById('player-fill');
+            const thumb = document.getElementById('player-thumb');
+            const curr  = document.getElementById('player-current');
+            const p = pct * 100;
+            if (fill)  { fill.style.transition  = 'none'; fill.style.width  = `${p}%`; }
+            if (thumb) { thumb.style.transition = 'none'; thumb.style.left  = `${p}%`; }
+            if (video && video.duration) {
+                const t = pct * video.duration;
+                if (curr) curr.innerText = `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+                video.currentTime = t;
+            }
+            this._showControls();
+        };
+
+        const onMove = (e) => {
+            if (!this.state.isSeeking) return;
+            e.preventDefault();
+            applySeek(getPct(e));
+        };
+
+        const onEnd = () => {
+            this.state.isSeeking = false;
+            track.classList.remove('seeking');
+            const fill  = document.getElementById('player-fill');
+            const thumb = document.getElementById('player-thumb');
+            if (fill)  fill.style.transition  = '';
+            if (thumb) thumb.style.transition = '';
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('mouseup',   onEnd);
+            document.removeEventListener('touchend',  onEnd);
+        };
+
+        track.addEventListener('mousedown', (e) => {
+            this.state.isSeeking = true;
+            track.classList.add('seeking');
+            applySeek(getPct(e));
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup',   onEnd);
+        });
+
+        track.addEventListener('touchstart', (e) => {
+            this.state.isSeeking = true;
+            track.classList.add('seeking');
+            applySeek(getPct(e));
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend',  onEnd);
+        }, { passive: true });
+    },
 
     /* ======================================================
        NAVIGATION
@@ -343,7 +429,9 @@ const app = {
         }
 
         const quality = this.state.videoQuality === 'auto' ? '720p' : this.state.videoQuality;
-        const videoPath = `videos/${quality}/${filename}`;
+        // Local: videos/720p/arquivo.mp4
+        // R2:    https://pub-xxx.r2.dev/720p/arquivo.mp4
+        const videoPath = `${VIDEO_CONFIG.baseUrl}/${quality}/${filename}`;
 
         source.src = videoPath;
         video.load();
@@ -355,7 +443,7 @@ const app = {
         };
 
         video.ontimeupdate = () => {
-            if (!video.duration) return;
+            if (!video.duration || this.state.isSeeking) return;
             this.state.playerSeconds = Math.floor(video.currentTime);
             const pct = (video.currentTime / video.duration) * 100;
             const fmt = sec => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
@@ -642,7 +730,14 @@ const app = {
         if (this.state.isLoggedIn && this.state.user) {
             if (!this.state.user.achievements) this.state.user.achievements = {};
             this.state.user.achievements.sharedFirstTime = true;
+            
+            // Save to current user and users array
             localStorage.setItem('sertao_user', JSON.stringify(this.state.user));
+            const idx = this.state.users.findIndex(u => u.email === this.state.user.email);
+            if (idx > -1) {
+                this.state.users[idx] = this.state.user;
+                localStorage.setItem('sertao_users', JSON.stringify(this.state.users));
+            }
         }
 
         const shareText = `Acabei de concluir a aula '${this.state.lessonTitle}' no app Brasil em Movimento! Vem dançar também!`;
@@ -651,7 +746,7 @@ const app = {
             navigator.share({
                 title: 'Brasil em Movimento',
                 text: shareText,
-                url: window.location.href
+                url: 'https://app.brasilemmovimento.com.br'
             }).then(() => {
                 this.continueFromFeedback();
             }).catch(e => {
@@ -696,18 +791,18 @@ const app = {
                 if (evalData) {
                     let starsHtml = '';
                     for (let i = 1; i <= 5; i++) {
-                        starsHtml += `<i  class="ti ti-star-filled" style="font-size:16px; color:${i <= evalData.stars ? '#FFB300' : '#e0e0e0'}; font-variation-settings: 'FILL' 1;"></i>`;
+                        starsHtml += `<i  class="ti ti-star-filled" style="font-size:16px; color:${i <= evalData.stars ? 'var(--secondary)' : 'rgba(0,0,0,0.15)'}; font-variation-settings: 'FILL' 1;"></i>`;
                     }
                     const dateStr = new Date(evalData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 
-                    iconHtml = `<i  class="ti ti-circle-check-filled" style="color: #4caf50;"></i>`;
+                    iconHtml = `<i  class="ti ti-circle-check-filled" style="color: var(--primary);"></i>`;
                     sideHtml = `<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                                     <div style="display: flex; gap: 2px;">${starsHtml}</div>
                                     <span style="font-size: 0.75rem; color: var(--text-light);">${dateStr}</span>
                                 </div>`;
                 } else if (index <= unlockedCount) {
                     iconHtml = `<i  class="ti ti-play-circle" style="color: var(--primary);"></i>`;
-                    sideHtml = `<span style="font-size: 0.75rem; color: var(--text-light); padding: 4px 8px; background: #eee; border-radius: 12px;">Pendente</span>`;
+                    sideHtml = `<span style="font-size: 0.75rem; color: var(--primary); padding: 4px 8px; background: rgba(253,94,41,0.09); border-radius: 12px; font-weight: 600;">Pendente</span>`;
                 } else {
                     opacity = '0.6';
                     iconHtml = `<i  class="ti ti-lock" style="color: var(--text-light);"></i>`;
@@ -771,20 +866,23 @@ const app = {
         let desc = '';
 
         if (type === 'bronze') {
-            title = 'Troféu Bronze';
-            desc = 'Como conquistar: Chegue até a metade do curso da dança.';
+            title = 'Calouro do Salão';
+            desc = 'Você deu os primeiros passos. Chegue à metade da trilha para conquistar este troféu.';
         } else if (type === 'gold') {
-            title = 'Troféu Ouro';
-            desc = 'Como conquistar: Consiga finalizar com até 3 estrelas.';
+            title = 'Rei da Marcação';
+            desc = 'O chamado foi feito e você respondeu. Finalize a trilha para entrar no salão dos mestres.';
         } else if (type === 'platinum') {
-            title = 'Troféu Platina';
-            desc = 'Como conquistar: Conquiste 5 estrelas em todas as aulas.';
+            title = 'Patrimônio Vivo';
+            desc = 'A dança vive em você. Conquiste 5 estrelas em todas as aulas e torne-se parte da tradição.';
+        } else if (type === 'influencer') {
+            title = 'Embaixador Junino';
+            desc = 'Você levou o ritmo para além da tela. Compartilhe seu progresso para conquistar este troféu.';
         }
 
         if (titleEl) {
             let extraInfo = '';
             if (danceName) extraInfo += ` <span style="font-size: 0.7em; opacity: 0.8;">(${danceName})</span>`;
-            if (isLocked) extraInfo += ` <i  class="ti ti-lock" style="font-size: 20px; vertical-align: text-bottom; color: #ffcc00;" title="Bloqueado"></i>`;
+            if (isLocked) extraInfo += ` <i  class="ti ti-lock" style="font-size: 20px; vertical-align: text-bottom; color: var(--secondary);" title="Bloqueado"></i>`;
             titleEl.innerHTML = title + extraInfo;
         }
         if (descEl) descEl.innerText = desc;
@@ -845,9 +943,17 @@ const app = {
             const isCompleted = evaluatedCount === 3;
             const isActive = isUnlocked && !isCompleted;
             
-            const badgeClass = isCompleted ? 'module-badge--done' : (isActive ? 'module-badge--active' : '');
-            const badgeIcon = isCompleted ? 'check' : (isActive ? 'play_arrow' : 'lock');
-            const borderClass = isCompleted ? 'trilha-completed' : (isActive ? 'active-module' : '');
+            const isNotStarted = isUnlocked && !isCompleted && evaluatedCount === 0;
+            const isInProgress = isUnlocked && !isCompleted && evaluatedCount > 0;
+            const badgeClass = isCompleted ? 'module-badge--done'
+                : (isInProgress ? 'module-badge--active'
+                : (isNotStarted ? 'module-badge--pending' : ''));
+            const badgeIcon = isCompleted ? 'check'
+                : (isInProgress ? 'play_arrow'
+                : (isNotStarted ? 'circle-dashed' : 'lock'));
+            const borderClass = isCompleted ? 'trilha-completed'
+                : (isInProgress ? 'active-module'
+                : (isNotStarted ? 'module-not-started' : ''));
             const pct = isUnlocked ? Math.floor(evaluatedCount / 3 * 100) + '%' : '0%';
             const pctNum = isUnlocked ? Math.floor(evaluatedCount / 3 * 100) : 0;
 
@@ -866,7 +972,7 @@ const app = {
                 
                 let lessonMeta = "Vídeo Aula";
                 if (hasStars) {
-                    const starsHTML = '<span style="color: #ffb400; font-size: 1rem;">' + '★'.repeat(evalRecord.stars) + '☆'.repeat(5 - evalRecord.stars) + '</span>';
+                    const starsHTML = '<span style="color: var(--secondary); font-size: 1rem;">' + '★'.repeat(evalRecord.stars) + '<span style="opacity:0.25;">☆</span>'.repeat(5 - evalRecord.stars) + '</span>';
                     lessonMeta = starsHTML;
                 }
                 
@@ -1216,22 +1322,19 @@ const app = {
                 const titlesContainer = document.getElementById('profile-titles');
                 if (titlesContainer) {
                     const allTitles = [
-                        { name: 'Iniciante do Salão', req: 0, icon: 'ti-music' },
-                        { name: 'Pé de Valsa', req: 9, icon: 'ti-shoe' },
-                        { name: 'Dançarino(a) de Fogo', req: 18, icon: 'ti-flame-filled' },
-                        { name: 'Mestre(a) do Terreiro', req: 36, icon: 'ti-star-filled' },
-                        { name: 'Lenda do Sertão', req: 54, icon: 'ti-crown' }
+                        { name: 'Iniciante do Salão', req: 0,  icon: 'ti-music',        color: 'orange' },
+                        { name: 'Pé de Valsa',        req: 9,  icon: 'ti-shoe',          color: 'yellow' },
+                        { name: 'Dançarino(a) de Fogo', req: 18, icon: 'ti-flame-filled', color: 'pink'   },
+                        { name: 'Mestre(a) do Terreiro', req: 36, icon: 'ti-star-filled', color: 'blue'   },
+                        { name: 'Lenda do Sertão',    req: 54, icon: 'ti-crown',         color: 'maroon' },
                     ];
                     let titlesHtml = '';
                     allTitles.forEach(t => {
                         const unlocked = totalLessonsEvaluated >= t.req;
-                        const bg = unlocked ? 'var(--primary)' : 'rgba(0,0,0,0.05)';
-                        const color = unlocked ? '#fff' : 'rgba(0,0,0,0.3)';
-                        titlesHtml += `
-                            <div style="background: ${bg}; color: ${color}; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                                <i class="ti ${t.icon}"></i> ${t.name}
-                            </div>
-                        `;
+                        const chipClass = unlocked
+                            ? `title-chip title-chip--${t.color}`
+                            : 'title-chip title-chip--locked';
+                        titlesHtml += `<div class="${chipClass}"><i class="ti ${t.icon}"></i>${t.name}</div>`;
                     });
                     titlesContainer.innerHTML = titlesHtml;
                 }
@@ -1250,7 +1353,7 @@ const app = {
                             <i  class="ti ti-lock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: rgba(255,255,255,0.8); z-index: 10; display: ${hasShared ? 'none' : 'block'};"></i>
                             <model-viewer src="image/Trofeu.glb" disable-zoom disable-pan environment-image="neutral" exposure="0.5"></model-viewer>
                         </div>
-                        <h4>Influenciador</h4>
+                        <h4>Embaixador Junino</h4>
                         <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden;">
                             <div class="trophy-progress-fill" style="width: ${hasShared ? '100' : '0'}%; height: 100%; background: var(--primary);"></div>
                         </div>
@@ -1293,7 +1396,7 @@ const app = {
                                 <i  class="ti ti-lock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: rgba(255,255,255,0.8); z-index: 10; display: ${hasBronze ? 'none' : 'block'};"></i>
                                 <model-viewer src="image/Trofeu.glb" disable-zoom disable-pan environment-image="neutral" exposure="0.5"></model-viewer>
                             </div>
-                            <h4>Bronze <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
+                            <h4>Calouro do Salão <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
                             <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden;">
                                 <div style="width: ${hasBronze ? '100' : '0'}%; height: 100%; background: #cd7f32;"></div>
                             </div>
@@ -1303,7 +1406,7 @@ const app = {
                                 <i  class="ti ti-lock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: rgba(255,255,255,0.8); z-index: 10; display: ${hasGold ? 'none' : 'block'};"></i>
                                 <model-viewer src="image/Trofeu.glb" disable-zoom disable-pan environment-image="neutral" exposure="0.5"></model-viewer>
                             </div>
-                            <h4>Ouro <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
+                            <h4>Rei da Marcação <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
                             <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden;">
                                 <div style="width: ${goldPct}%; height: 100%; background: #ffd700;"></div>
                             </div>
@@ -1314,7 +1417,7 @@ const app = {
                                 <i  class="ti ti-lock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: rgba(255,255,255,0.8); z-index: 10; display: ${hasPlat ? 'none' : 'block'};"></i>
                                 <model-viewer src="image/Trofeu.glb" disable-zoom disable-pan environment-image="neutral" exposure="0.5"></model-viewer>
                             </div>
-                            <h4>Platina <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
+                            <h4>Patrimônio Vivo <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
                             <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden;">
                                 <div style="width: ${platPct}%; height: 100%; background: #e5e4e2;"></div>
                             </div>

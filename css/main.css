@@ -139,6 +139,21 @@ input { font-family: var(--font-body); }
     margin-top: 24px;
     margin-bottom: 12px;
 }
+/* Colored underline on profile section titles */
+.profile-content .section-title {
+    font-weight: 700;
+    padding: 0;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.profile-content .section-title::after {
+    content: '';
+    display: block;
+    width: 28px; height: 3px;
+    border-radius: 2px;
+    background: var(--primary);
+}
+.profile-content .section-title:nth-of-type(2)::after { background: var(--accent-blue); }
+.profile-content .section-title:nth-of-type(3)::after { background: var(--secondary); }
 
 .btn-primary {
     display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -190,10 +205,7 @@ input { font-family: var(--font-body); }
    HOME VIEW
    ====================================================== */
 .hero {
-    /* Full viewport height for landing page */
-    height: 100%;
-    flex: 1;
-    min-height: 500px; flex-shrink: 0;
+    height: 100%; flex: 1; min-height: 500px; flex-shrink: 0;
     position: relative;
     background-image: url('../image/hero-bg.jpeg');
     background-size: cover; background-position: center;
@@ -211,16 +223,54 @@ input { font-family: var(--font-body); }
     position: relative; z-index: 1;
     padding: 0 22px 48px; color: white; width: 100%;
 }
-.brand-logo { display: flex; flex-direction: column; margin-bottom: 16px; gap: 0; }
-.brand-row { display: flex; align-items: center; gap: 10px; line-height: 1; }
-.brand-br { font-family: var(--font-heading); font-weight: 900; font-size: 4.8rem; line-height: 1; letter-spacing: -3px; color: #fff; }
-.brand-plus { display: grid; grid-template-columns: repeat(3, 15px); grid-template-rows: repeat(3, 15px); gap: 2px; align-self: center; }
+
+/* ── Brand logo ── */
+.brand-logo {
+    display: flex; flex-direction: column;
+    margin-bottom: 16px; gap: 0;
+}
+.brand-row {
+    display: flex; align-items: center; gap: 10px;
+    line-height: 1;
+}
+.brand-br {
+    font-family: var(--font-heading); font-weight: 900;
+    font-size: 4.8rem; line-height: 1;
+    letter-spacing: -3px; color: #fff;
+}
+.brand-plus {
+    display: grid;
+    grid-template-columns: repeat(3, 15px);
+    grid-template-rows: repeat(3, 15px);
+    gap: 2px; align-self: center;
+}
 .brand-plus span { border-radius: 2px; }
-.bp-y { background: #fed02d; } .bp-o { background: #fd5e29; } .bp-g { background: #0d4c1e; } .bp-p { background: #fa8edf; } .bp-b { background: #0470dd; }
-.brand-movimento { font-family: var(--font-heading); font-weight: 900; font-size: 3rem; line-height: 1; letter-spacing: -2px; color: #fff; }
-.hero-sub { font-size: .95rem; opacity: .8; margin-bottom: 22px; font-weight: 500; }
-.btn-landing-cta { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0b0f14; font-family: var(--font-heading); font-weight: 700; font-size: 1rem; padding: 14px 26px; border-radius: 50px; box-shadow: 0 4px 24px rgba(0,0,0,.35); transition: transform .18s ease; border: none; cursor: pointer; }
-.btn-landing-cta:active { transform: scale(.97); }
+.bp-y { background: #fed02d; }
+.bp-o { background: #fd5e29; }
+.bp-g { background: #0d4c1e; }
+.bp-p { background: #fa8edf; }
+.bp-b { background: #0470dd; }
+.brand-movimento {
+    font-family: var(--font-heading); font-weight: 900;
+    font-size: 3rem; line-height: 1;
+    letter-spacing: -2px; color: #fff;
+}
+.hero-sub {
+    font-size: .95rem; opacity: .8;
+    margin-bottom: 22px; font-weight: 500;
+}
+
+/* ── Landing CTA button ── */
+.btn-landing-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #fff; color: #0b0f14;
+    font-family: var(--font-heading); font-weight: 700; font-size: 1rem;
+    padding: 14px 26px; border-radius: 50px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.35);
+    transition: transform .18s ease, box-shadow .18s ease;
+    border: none; cursor: pointer;
+}
+.btn-landing-cta:active { transform: scale(.97); box-shadow: 0 2px 10px rgba(0,0,0,.2); }
 .btn-landing-cta .ti { font-size: 18px; color: var(--primary); }
 
 
@@ -402,6 +452,7 @@ input { font-family: var(--font-body); }
 }
 .dance-card--yellow .dance-card-img { background: #fee97a; }
 
+/* "Em breve" — diagonal stripe pattern sobre a cor do card */
 .dance-card--pink .dance-card-img {
     background:
         repeating-linear-gradient(
@@ -496,7 +547,8 @@ input { font-family: var(--font-body); }
     text-transform: uppercase;
     letter-spacing: 0.1em;
     opacity: 0.75;
-    margin-bottom: 4px;}
+    margin-bottom: 4px;
+}
 
 /* ======================================================
    HOME VIEW - COMPACT LAYOUT (Exact Fit, No Scroll)
@@ -719,11 +771,11 @@ input { font-family: var(--font-body); }
     border-radius: var(--radius);
     padding: 18px;
     box-shadow: var(--shadow-sm);
-    border-left: 5px solid rgba(160,168,180,0.35);
+    border-left: 5px solid rgba(160,168,180,0.35); /* locked = gray */
 }
-.trilha-module.module-not-started { border-left-color: var(--primary); }
-.trilha-module.active-module      { border-left-color: var(--secondary); }
-.trilha-module.trilha-completed   { border-left-color: var(--green); }
+.trilha-module.module-not-started { border-left-color: var(--primary); }        /* orange */
+.trilha-module.active-module      { border-left-color: var(--secondary); }       /* yellow */
+.trilha-module.trilha-completed   { border-left-color: var(--green); }           /* green */
 
 .module-header {
     display: flex; justify-content: space-between; align-items: flex-start;
@@ -733,12 +785,12 @@ input { font-family: var(--font-body); }
 .module-badge {
     width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
     display: flex; justify-content: center; align-items: center;
-    background: rgba(160,168,180,0.15); color: var(--text-light);
+    background: rgba(160,168,180,0.15); color: var(--text-light); /* locked = gray */
     margin-top: 2px;
 }
-.module-badge--pending { background: rgba(253,94,41,0.12); color: var(--primary); }
-.module-badge--active  { background: var(--secondary); color: #0b0f14; }
-.module-badge--done    { background: var(--green); color: #fff; }
+.module-badge--pending { background: rgba(253,94,41,0.12); color: var(--primary); }  /* not started = orange */
+.module-badge--active  { background: var(--secondary); color: #0b0f14; }              /* in progress = yellow */
+.module-badge--done    { background: var(--green); color: #fff; }                     /* completed = green */
 .module-badge .material-symbols-rounded { font-size: 18px; }
 .trilha-module h3   { font-size: 1.05rem; line-height: 1.2; }
 .module-desc        { font-size: .75rem; color: var(--text-light); margin-top: 3px; }
@@ -753,7 +805,7 @@ input { font-family: var(--font-body); }
 }
 .progress-fill {
     height: 100%;
-    background: var(--primary);
+    background: var(--primary); /* default = orange (not started) */
     border-radius: 4px;
     transition: width .6s ease;
 }
@@ -898,6 +950,7 @@ input { font-family: var(--font-body); }
 /* Progress track — draggable */
 .player-progress { padding: 0 16px 2px; }
 .player-track {
+    /* tall touch target, visual bar via pseudo-element */
     height: 22px;
     display: flex; align-items: center;
     position: relative;
@@ -929,7 +982,7 @@ input { font-family: var(--font-body); }
     transform: translate(-50%, -50%) scale(1.2);
 }
 
-/* Controls row — times at edges */
+/* Controls row — times at edges, buttons centered */
 .player-controls {
     display: flex; align-items: center; justify-content: space-between;
     padding: 4px 16px 22px;
@@ -1100,7 +1153,14 @@ input { font-family: var(--font-body); }
     border-radius: 50%; border: 3px solid rgba(255,255,255,.5);
     display: flex; justify-content: center; align-items: center;
 }
-.avatar .material-symbols-rounded { font-size: 42px; color: white; }
+.avatar .ti { font-size: 38px; color: white; }
+.level-ring {
+    position: absolute; inset: -5px;
+    border-radius: 50%;
+    border: 3px solid var(--secondary);
+    box-shadow: 0 0 14px rgba(254,208,45,0.45);
+    pointer-events: none;
+}
 .user-info h3        { font-size: 1.35rem; }
 .user-email          { font-size: .78rem; opacity: .7; margin: 2px 0 10px; }
 .level-badge {
@@ -1108,7 +1168,7 @@ input { font-family: var(--font-body); }
     background: rgba(255,255,255,.18); border-radius: 20px;
     padding: 4px 12px; font-size: .75rem; font-weight: 600;
 }
-.level-badge .material-symbols-rounded { font-size: 16px; color: var(--secondary); }
+.level-badge .ti { font-size: 14px; color: var(--secondary); }
 
 .level-progress-card {
     background: var(--bg-card); border-radius: var(--radius);
@@ -1123,11 +1183,31 @@ input { font-family: var(--font-body); }
 }
 .stat-card {
     background: var(--bg-card); border-radius: var(--radius);
-    padding: 16px; text-align: center; box-shadow: var(--shadow-sm);
+    padding: 14px 10px; text-align: center; box-shadow: var(--shadow-sm);
+    border-top: 3px solid transparent;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2px;
+    min-height: 108px;
 }
-.stat-card .material-symbols-rounded { color: var(--secondary); font-size: 30px; display: block; margin-bottom: 4px; }
-.stat-card h4 { font-size: 1.8rem; color: var(--primary); }
-.stat-card p  { font-size: .72rem; color: var(--text-light); margin-top: 2px; }
+.stat-card .ti { font-size: 24px; line-height: 1; }
+.stat-card h4  { font-size: 1.7rem; line-height: 1.15; margin: 0; }
+.stat-card p   { font-size: .68rem; color: var(--text-light); line-height: 1.35; margin: 0; }
+
+/* Card 1 — Nível: orange */
+.stats-grid .stat-card:nth-child(1) { border-top-color: var(--primary); }
+.stats-grid .stat-card:nth-child(1) .ti { color: var(--primary); }
+.stats-grid .stat-card:nth-child(1) h4  { color: var(--primary); }
+
+/* Card 2 — Aulas: blue */
+.stats-grid .stat-card:nth-child(2) { border-top-color: var(--accent-blue); }
+.stats-grid .stat-card:nth-child(2) .ti { color: var(--accent-blue); }
+.stats-grid .stat-card:nth-child(2) h4  { color: var(--accent-blue); }
+
+/* Card 3 — Estrelas: yellow */
+.stats-grid .stat-card:nth-child(3) { border-top-color: var(--secondary); }
+.stats-grid .stat-card:nth-child(3) .ti { color: var(--secondary); }
+.stats-grid .stat-card:nth-child(3) h4  { color: var(--secondary); }
 .badges-grid {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
     padding: 0;
@@ -1145,6 +1225,42 @@ input { font-family: var(--font-body); }
 .badge.earned .badge-icon:hover { transform: scale(1.1); }
 .badge.locked .badge-icon { background: var(--border); border-color: var(--text-light); color: var(--text-light); }
 .badge p { font-size: .7rem; font-weight: 600; line-height: 1.3; color: var(--text-light); }
+
+/* ======================================================
+   MEUS TÍTULOS — title chips
+   ====================================================== */
+.titles-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    padding: 0 16px;
+    margin-bottom: 24px;
+}
+.title-chip {
+    flex: 1 1 calc(50% - 8px);
+    max-width: calc(50% - 4px);
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px;
+    padding: 8px 12px; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 600;
+    text-align: center;
+    transition: opacity var(--anim);
+}
+/* Unlocked tiers — each rank has its own palette color */
+.title-chip--orange  { background: var(--primary);       color: #fff;    }
+.title-chip--yellow  { background: var(--secondary);     color: #0b0f14; }
+.title-chip--pink    { background: var(--accent-pink);   color: #0b0f14; }
+.title-chip--blue    { background: var(--accent-blue);   color: #fff;    }
+.title-chip--maroon  { background: var(--accent-maroon); color: #fff;    }
+
+/* Locked state — adapts to dark mode */
+.title-chip--locked {
+    background: var(--bg-card);
+    color: var(--text-light);
+    border: 1.5px solid var(--border);
+    opacity: 0.7;
+}
 
 /* ======================================================
    AUTH MODAL
@@ -1343,6 +1459,7 @@ input { font-family: var(--font-body); }
     border-bottom: 2px solid rgba(253, 94, 41, 0.15);
 }
 
+/* Profile header — stays neutral since hero card below is already orange */
 #view-profile .app-header h2 {
     font-weight: 800;
     letter-spacing: -0.5px;
