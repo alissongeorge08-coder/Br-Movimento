@@ -15,13 +15,309 @@ const VIDEO_CONFIG = (() => {
 
     // ← Cole aqui a URL pública do seu bucket R2
     // Exemplo: 'https://pub-abc123.r2.dev'
-    const R2_BASE_URL = 'https://SEU_BUCKET.r2.dev';
+    const R2_BASE_URL = 'https://pub-093acdab6cfa44149c7c1afea00ec62f.r2.dev';
 
     return {
         isLocal,
         baseUrl: isLocal ? 'videos' : R2_BASE_URL
     };
 })();
+
+/* --------------- Playlist do Spotify ---------------
+   Playlist oficial "Quadrilha" curada pelo Spotify.
+   70 músicas · 66K saves · forró, baião e quadrilha clássica.
+   Para usar uma playlist própria, substitua o ID abaixo.
+   --------------------------------------------------- */
+const SPOTIFY_PLAYLIST_URL = 'https://open.spotify.com/playlist/37i9dQZF1DXbFmIQ7xHuBO';
+/* URI nativa (abre direto no app Spotify no celular) */
+const SPOTIFY_URI = 'spotify:playlist:37i9dQZF1DXbFmIQ7xHuBO';
+
+/* ====================================================
+   SISTEMA DE ÁUDIO
+   - Música de fundo: audio/quadrilha.mp3  (coloque o arquivo lá)
+   - Efeitos sonoros sintetizados via Web Audio API
+   ==================================================== */
+const AudioSystem = {
+    _ctx:      null,
+    _bgAudio:  null,
+    _musicOn:  true,
+    _sfxOn:    true,
+    _unlocked: false,
+
+    init() {
+        const prefs = JSON.parse(localStorage.getItem('brm_audio') || '{}');
+        this._musicOn = prefs.music !== false;
+        this._sfxOn   = prefs.sfx   !== false;
+
+        // Faixa royalty-free: "Passos de Quadrilha" — Pixabay CDN (CC0)
+        // Fallback local: coloque audio/quadrilha.mp3 para uso offline
+        const cdnUrl   = 'https://cdn.pixabay.com/audio/2025/04/30/20-29-59-304.mp3';
+        const localUrl = 'audio/quadrilha.mp3';
+        this._bgAudio = new Audio(cdnUrl);
+        this._bgAudio.addEventListener('error', () => {
+            // Se CDN falhar, tenta arquivo local
+            if (this._bgAudio.src !== localUrl) {
+                this._bgAudio.src = localUrl;
+                if (this._musicOn) this._bgAudio.play().catch(() => {});
+            }
+        });
+        this._bgAudio.loop    = true;
+        this._bgAudio.volume  = 0.3;
+        this._bgAudio.preload = 'none';
+
+        // Desbloqueia áudio no primeiro gesto (política de autoplay dos browsers)
+        const unlock = () => {
+            if (this._unlocked) return;
+            this._unlocked = true;
+            this._ensureCtx();
+            if (this._musicOn) this._bgAudio.play().catch(() => {});
+        };
+        document.addEventListener('click',    unlock, { once: true });
+        document.addEventListener('touchend', unlock, { once: true });
+
+        this._updateBtn();
+    },
+
+    _ensureCtx() {
+        if (!this._ctx) this._ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this._ctx.state === 'suspended') this._ctx.resume();
+        return this._ctx;
+    },
+
+    /* Abaixa música enquanto vídeo toca */
+    duck()   { if (this._bgAudio) this._bgAudio.volume = 0; },
+    unduck() {
+        const pref = localStorage.getItem('brm_music_pref');
+        if (this._bgAudio && this._musicOn && pref !== 'spotify') this._bgAudio.volume = 0.3;
+    },
+
+    /* Para completamente (modo Spotify) */
+    stopBg() {
+        if (this._bgAudio) { this._bgAudio.pause(); this._bgAudio.currentTime = 0; }
+        const btn  = document.getElementById('btn-music');
+        if (btn) btn.style.display = 'none'; // esconde o controle de música no player
+    },
+
+    /* Retoma (voltou pro modo padrão) */
+    resumeBg() {
+        const btn = document.getElementById('btn-music');
+        if (btn) btn.style.display = '';
+        if (!this._musicOn) return;
+        if (!this._unlocked) { this._unlocked = true; this._ensureCtx(); }
+        if (this._bgAudio) this._bgAudio.play().catch(() => {});
+    },
+
+    toggleMusic() {
+        this._musicOn = !this._musicOn;
+        localStorage.setItem('brm_audio', JSON.stringify({ music: this._musicOn, sfx: this._sfxOn }));
+        if (this._musicOn) {
+            if (!this._unlocked) { this._unlocked = true; this._ensureCtx(); }
+            this._bgAudio.volume = 0.3;
+            this._bgAudio.play().catch(() => {});
+        } else {
+            this._bgAudio.pause();
+        }
+        this._updateBtn();
+    },
+
+    _updateBtn() {
+        const btn  = document.getElementById('btn-music');
+        const icon = document.getElementById('music-icon');
+        if (!btn) return;
+        if (icon) icon.className = this._musicOn ? 'ti ti-music' : 'ti ti-music-off';
+        btn.setAttribute('aria-pressed', String(this._musicOn));
+        btn.title = this._musicOn ? 'Pausar música' : 'Tocar música';
+    },
+
+    /* Efeito: faísca ascendente para o confete */
+    sfxConfetti() {
+        if (!this._sfxOn) return;
+        try {
+            const ctx = this._ensureCtx(), t0 = ctx.currentTime;
+            [523, 659, 784, 1047, 1319].forEach((freq, i) => {
+                const osc = ctx.createOscillator(), gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine'; osc.frequency.value = freq;
+                const t = t0 + i * 0.07;
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.16, t + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+                osc.start(t); osc.stop(t + 0.23);
+            });
+        } catch (_) {}
+    },
+
+    /* Efeito: fanfarra triunfante para troféu */
+    sfxTrophy() {
+        if (!this._sfxOn) return;
+        try {
+            const ctx = this._ensureCtx(), t0 = ctx.currentTime;
+            // Arpegio ascendente G4 → C5 → E5 → G5
+            [392, 523, 659, 784].forEach((freq, i) => {
+                const osc = ctx.createOscillator(), gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'triangle'; osc.frequency.value = freq;
+                const t = t0 + i * 0.13;
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.20, t + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.30);
+                osc.start(t); osc.stop(t + 0.31);
+            });
+            // Acorde final C5–E5–G5 com sustain
+            [523, 659, 784].forEach(freq => {
+                const osc = ctx.createOscillator(), gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine'; osc.frequency.value = freq;
+                const t = t0 + 0.62;
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.14, t + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+                osc.start(t); osc.stop(t + 1.2);
+            });
+        } catch (_) {}
+    }
+};
+
+/* --------------- Confete (Lottie) ---------------
+   Dispara ao concluir a avaliação de uma aula.
+   Arquivo: animations/celebration_confetti.json
+   ------------------------------------------------ */
+function playConfetti() {
+    const el = document.getElementById('confetti-overlay');
+    if (!el || typeof lottie === 'undefined') return;
+
+    // Estilo do overlay (pointer-events:none para não bloquear cliques)
+    Object.assign(el.style, {
+        display: 'block',
+        position: 'fixed',
+        top: '0', left: '0',
+        width: '100%', height: '100%',
+        pointerEvents: 'none',
+        zIndex: '9999'
+    });
+
+    const anim = lottie.loadAnimation({
+        container: el,
+        renderer: 'svg',
+        loop: false,
+        autoplay: true,
+        path: 'image/celebration_confetti.json.json'
+    });
+
+    // Limpa o overlay ao terminar
+    anim.addEventListener('complete', () => {
+        el.style.display = 'none';
+        anim.destroy();
+    });
+
+    // Segurança: força limpeza após 5s mesmo se o evento não disparar
+    setTimeout(() => {
+        el.style.display = 'none';
+        try { anim.destroy(); } catch (_) {}
+    }, 5000);
+}
+
+/* --------------- Troféu desbloqueado (Lottie) --------
+   Dispara quando uma conquista é desbloqueada.
+   Arquivo: image/trofeu.json
+   ------------------------------------------------ */
+function playTrophyUnlock(trophyName) {
+    const el = document.getElementById('trophy-overlay');
+    if (!el || typeof lottie === 'undefined') return;
+    AudioSystem.sfxTrophy();
+
+    // Fica limitado ao container do app (shell mobile 414px)
+    const appContainer = document.getElementById('app-container');
+    const rect = appContainer ? appContainer.getBoundingClientRect() : null;
+
+    // Animação ocupa a metade superior do shell (centralizado, não tela toda)
+    const appTop    = rect ? rect.top    : 0;
+    const appLeft   = rect ? rect.left   : 0;
+    const appWidth  = rect ? rect.width  : window.innerWidth;
+    const appHeight = rect ? rect.height : window.innerHeight;
+    const animH     = Math.round(appHeight * 0.55); // 55% da altura do shell
+
+    Object.assign(el.style, {
+        display:   'block',
+        position:  'fixed',
+        top:       (appTop + appHeight * 0.05) + 'px',  // 5% de margem do topo
+        left:      appLeft + 'px',
+        width:     appWidth + 'px',
+        height:    animH + 'px',
+        pointerEvents: 'none',
+        zIndex:    '9999',
+        overflow:  'hidden'
+    });
+
+    const anim = lottie.loadAnimation({
+        container: el,
+        renderer:  'svg',
+        loop:      false,
+        autoplay:  true,
+        path:      'image/trofeu.json'
+    });
+    anim.setSpeed(0.6);
+
+    // Toast aparece logo abaixo da animação, centralizado no shell
+    const toastTop = appTop + appHeight * 0.05 + animH + 8;
+    const toast = document.createElement('div');
+    Object.assign(toast.style, {
+        position:      'fixed',
+        top:           toastTop + 'px',
+        left:          appLeft + 'px',
+        width:         appWidth + 'px',
+        display:       'flex',
+        flexDirection: 'column',
+        alignItems:    'center',
+        gap:           '8px',
+        zIndex:        '10000',
+        pointerEvents: 'auto',
+        cursor:        'pointer',
+        opacity:       '0',
+        transition:    'opacity 0.4s ease'
+    });
+    toast.innerHTML = `
+        <div style="background:rgba(0,0,0,0.88); color:#fff; padding:14px 22px; border-radius:20px;
+                    font-size:0.88rem; font-weight:700; text-align:center; box-shadow:0 4px 24px rgba(0,0,0,0.5);
+                    border:1.5px solid rgba(254,208,45,0.4); max-width:88%;">
+            🏆 Troféu desbloqueado!<br>
+            <span style="color:var(--secondary); font-size:0.95rem;">${trophyName}</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button id="trophy-btn-view"
+                    style="background:var(--primary); color:#fff; border:none; padding:9px 20px; border-radius:32px;
+                           font-size:0.8rem; font-weight:600; box-shadow:0 2px 12px rgba(253,94,41,0.4); cursor:pointer;">
+                Ver troféus →
+            </button>
+            <button id="trophy-btn-dismiss"
+                    style="background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.75); border:1px solid rgba(255,255,255,0.2);
+                           padding:9px 20px; border-radius:32px; font-size:0.8rem; font-weight:500; cursor:pointer;">
+                Continuar
+            </button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => { toast.style.opacity = '1'; });
+
+    let cleaned = false;
+    const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
+        el.style.display = 'none';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+        try { anim.destroy(); } catch (_) {}
+    };
+
+    toast.querySelector('#trophy-btn-view').addEventListener('click', () => {
+        cleanup();
+        app.navigate('trophies');
+    });
+    toast.querySelector('#trophy-btn-dismiss').addEventListener('click', cleanup);
+
+    // Fecha sozinho após 7s se o usuário não interagir
+    setTimeout(cleanup, 7000);
+}
 
 const app = {
 
@@ -36,6 +332,7 @@ const app = {
         users: [],            // simulated local "database"
         videoQuality: 'auto',
         qualityPanelOpen: false,
+        pendingTrophyUnlock: null,
     },
 
     curriculum: {
@@ -131,6 +428,18 @@ const app = {
 
         this.switchTrilhaTab('cavalheiro');
         this._initSeek();
+        AudioSystem.init();
+
+        // Garante que só valores válidos ficam no localStorage
+        const savedPref = localStorage.getItem('brm_music_pref');
+        if (savedPref && savedPref !== 'spotify' && savedPref !== 'default') {
+            localStorage.removeItem('brm_music_pref'); // limpa valor inválido
+        }
+
+        this._syncMusicPrefUI();
+
+        // Se preferência já for Spotify, oculta controle de música padrão no player
+        if (localStorage.getItem('brm_music_pref') === 'spotify') AudioSystem.stopBg();
         console.log('Brasil em Movimento v2 initialized.');
     },
 
@@ -210,6 +519,10 @@ const app = {
         this.state.currentView = viewId;
         this._updateNav(viewId);
 
+        if (viewId === 'settings') {
+            this._syncMusicPrefUI();
+        }
+
         if (viewId === 'trophies') {
             document.querySelectorAll('.trophy-card-viewer').forEach(container => {
                 const viewer = container.querySelector('model-viewer');
@@ -239,7 +552,7 @@ const app = {
         this.state.lessonTitle = title;
         this.state.currentVideoFile = videoFile;
         this.state.playerSeconds = 0;
-        this.state.playerPlaying = true;
+        this.state.playerPlaying = false;   // inicia pausado — usuário dá play quando pronto
         this.state.feedbackShown = false;
         this.state.lastTapTime = 0;
 
@@ -255,13 +568,16 @@ const app = {
         this.navigate('experience');
         this._showControls();
         if (navigator.vibrate) navigator.vibrate(50);
+
+        // Verifica preferência musical (mostra modal se for a 1ª vez)
+        this._checkMusicPref();
     },
 
     navigateBack() {
         this._stopPlayerTimer();
         this._cancelHideTimer();
         const video = document.getElementById('main-video');
-        if (video) { video.pause(); video.currentTime = 0; }
+        if (video) { video.pause(); video.currentTime = 0; AudioSystem.unduck(); }
         // Close quality panel if open
         if (this.state.qualityPanelOpen) this.toggleQualityPanel();
         
@@ -283,14 +599,13 @@ const app = {
             this.state.playerSeconds++;
             this._updatePlayerUI();
 
-            // Show feedback popup 8 seconds after starting
-            if (this.state.playerSeconds === 8 && !this.state.feedbackShown) {
-                this.state.feedbackShown = true;
-                setTimeout(() => this._showFeedback(), 300);
-            }
-
             if (this.state.playerSeconds >= this.state.playerDuration) {
                 this._stopPlayerTimer();
+                // Vídeo simulado chegou ao fim — abre o feedback
+                if (!this.state.feedbackShown) {
+                    this.state.feedbackShown = true;
+                    setTimeout(() => this._showFeedback(), 500);
+                }
             }
         }, 1000);
     },
@@ -314,10 +629,10 @@ const app = {
     },
 
     togglePlay() {
-        const video = document.getElementById('main-video');
-        const icon = document.querySelector('#main-play-btn .material-symbols-rounded');
-        const bigIcon = document.querySelector('#play-pause-icon .material-symbols-rounded');
+        const video  = document.getElementById('main-video');
+        const icon   = document.querySelector('#main-play-btn i');
         const ppIcon = document.getElementById('play-pause-icon');
+        const bigIcon = ppIcon ? ppIcon.querySelector('i') : null;
 
         if (video && (video.src || video.currentSrc || this.state.currentVideoFile)) {
             // Real video control
@@ -325,18 +640,20 @@ const app = {
                 if (video.ended) video.currentTime = 0;
                 video.play();
                 this.state.playerPlaying = true;
+                AudioSystem.duck();
             } else {
                 video.pause();
                 this.state.playerPlaying = false;
+                AudioSystem.unduck();
             }
         } else {
             // Simulated fallback
             this.state.playerPlaying = !this.state.playerPlaying;
         }
 
-        const sym = this.state.playerPlaying ? 'pause' : 'play_arrow';
-        if (icon) icon.innerText = sym;
-        if (bigIcon) bigIcon.innerText = sym;
+        const cls = this.state.playerPlaying ? 'ti ti-player-pause-filled' : 'ti ti-player-play-filled';
+        if (icon) icon.className = cls;
+        if (bigIcon) bigIcon.className = cls;
 
         if (ppIcon) {
             ppIcon.classList.add('visible');
@@ -430,8 +747,9 @@ const app = {
 
         const quality = this.state.videoQuality === 'auto' ? '720p' : this.state.videoQuality;
         // Local: videos/720p/arquivo.mp4
-        // R2:    https://pub-xxx.r2.dev/720p/arquivo.mp4
-        const videoPath = `${VIDEO_CONFIG.baseUrl}/${quality}/${filename}`;
+        // R2:    https://pub-xxx.r2.dev/720/arquivo.mp4 (sem o "p")
+        const folder = VIDEO_CONFIG.isLocal ? quality : quality.replace('p', '');
+        const videoPath = `${VIDEO_CONFIG.baseUrl}/${folder}/${filename}`;
 
         source.src = videoPath;
         video.load();
@@ -454,11 +772,6 @@ const app = {
             if (thumb) thumb.style.left = `${pct}%`;
             if (curr) curr.innerText = fmt(Math.floor(video.currentTime));
 
-            // Show feedback popup at 8 seconds
-            if (Math.floor(video.currentTime) === 8 && !this.state.feedbackShown) {
-                this.state.feedbackShown = true;
-                setTimeout(() => this._showFeedback(), 300);
-            }
         };
 
         video.onended = () => {
@@ -467,23 +780,35 @@ const app = {
                 video.pause();
             }
             this.state.playerPlaying = false;
-            const icon = document.querySelector('#main-play-btn .material-symbols-rounded');
-            if (icon) icon.innerText = 'play_arrow';
+            AudioSystem.unduck();
+            const icon = document.querySelector('#main-play-btn i');
+            if (icon) icon.className = 'ti ti-player-play-filled';
+            // Vídeo chegou ao fim — abre o feedback de avaliação
+            if (!this.state.feedbackShown) {
+                this.state.feedbackShown = true;
+                setTimeout(() => this._showFeedback(), 600);
+            }
         };
 
         video.onerror = () => {
             console.warn('Video not found at:', videoPath, '— using simulated player.');
+            AudioSystem.unduck();
             this.state.playerDuration = 300;
             document.getElementById('player-total').innerText = '5:00';
             this._startPlayerTimer();
         };
 
-        video.play().catch(() => {
-            console.log('Autoplay blocked, user must tap play.');
-            this.state.playerPlaying = false;
-            const icon = document.querySelector('#main-play-btn .material-symbols-rounded');
-            if (icon) icon.innerText = 'play_arrow';
-        });
+        // Play→pause imediato: força o browser a decodificar e exibir o 1º frame
+        // sem iniciar a reprodução de fato (respeita a decisão do usuário sobre música).
+        video.play()
+            .then(() => { video.pause(); })
+            .catch(() => { /* autoplay bloqueado — frame pode não aparecer, tudo bem */ });
+
+        this.state.playerPlaying = false;
+        const _playIcon = document.querySelector('#main-play-btn i');
+        const _bigIcon  = document.querySelector('#play-pause-icon i');
+        if (_playIcon) _playIcon.className = 'ti ti-player-play-filled';
+        if (_bigIcon)  _bigIcon.className  = 'ti ti-player-play-filled';
     },
 
     /* ======================================================
@@ -598,9 +923,9 @@ const app = {
 
         const modal = document.getElementById('fitness-modal');
         const warn = document.getElementById('fitness-guest-warning');
-        if (warn) {
-            warn.style.display = this.state.isLoggedIn ? 'none' : 'flex';
-        }
+        if (warn) warn.style.display = this.state.isLoggedIn ? 'none' : 'flex';
+        const guestNotice = document.getElementById('guest-eval-notice');
+        if (guestNotice) guestNotice.style.display = this.state.isLoggedIn ? 'none' : 'block';
 
         // Reset Steps UI
         const step1 = document.getElementById('fitness-step-eval');
@@ -631,6 +956,12 @@ const app = {
             modal.setAttribute('aria-hidden', 'true');
         }
         this.navigateBack();
+        // Failsafe: disparar troféu pendente mesmo se vier por aqui diretamente
+        if (this.state.pendingTrophyUnlock) {
+            const name = this.state.pendingTrophyUnlock;
+            this.state.pendingTrophyUnlock = null;
+            setTimeout(() => playTrophyUnlock(name), 400);
+        }
     },
 
     continueFromFeedback() {
@@ -679,30 +1010,47 @@ const app = {
         }
     },
 
+    // Retorna snapshot dos troféus desbloqueados no estado atual
+    _getTrophySnapshot() {
+        const unlocked = new Set();
+        if (!this.state.isLoggedIn || !this.state.user) return unlocked;
+        const progress = this.state.user.progress || {};
+        ['Casal', 'Dama', 'Cavalheiro'].forEach(role => {
+            const lessons = progress[role] || [];
+            const stars = lessons.reduce((s, l) => s + parseInt(l.stars || 0), 0);
+            if (lessons.length >= 1) unlocked.add(`Calouro do Salão (${role})`);
+            if (stars >= 45)         unlocked.add(`Rei da Marcação (${role})`);
+            if (stars >= 90)         unlocked.add(`Patrimônio Vivo (${role})`);
+        });
+        const hasShared = this.state.user.achievements && this.state.user.achievements.sharedFirstTime;
+        if (hasShared) unlocked.add('Embaixador Junino');
+        return unlocked;
+    },
+
     submitFitnessFeedback() {
         if (!this.state.currentFitnessRating || this.state.currentDifficulty === null) return;
 
+        // Snapshot ANTES de salvar — para detectar novos desbloqueios (só importa se logado)
+        const before = this._getTrophySnapshot();
+
+        const dance = this.state.currentDance || 'Casal';
+        const lessonEntry = {
+            title: this.state.lessonTitle,
+            stars: this.state.currentFitnessRating,
+            difficultyAdequate: this.state.currentDifficulty,
+            date: new Date().toISOString()
+        };
+
         if (this.state.isLoggedIn && this.state.user) {
+            // Usuário logado: salva no perfil
             if (!this.state.user.progress) this.state.user.progress = {};
-            const dance = this.state.currentDance || 'Casal';
-            
-            if (!this.state.user.progress[dance]) {
-                this.state.user.progress[dance] = [];
-            }
+            if (!this.state.user.progress[dance]) this.state.user.progress[dance] = [];
 
             const existingIdx = this.state.user.progress[dance].findIndex(l => l.title === this.state.lessonTitle);
             if (existingIdx !== -1) {
-                // Sempre atualiza o feedback mais recente
-                this.state.user.progress[dance][existingIdx].stars = this.state.currentFitnessRating;
-                this.state.user.progress[dance][existingIdx].difficultyAdequate = this.state.currentDifficulty;
-                this.state.user.progress[dance][existingIdx].date = new Date().toISOString();
+                this.state.user.progress[dance][existingIdx] = { ...this.state.user.progress[dance][existingIdx], ...lessonEntry };
             } else {
-                this.state.user.progress[dance].push({
-                    title: this.state.lessonTitle,
-                    stars: this.state.currentFitnessRating,
-                    difficultyAdequate: this.state.currentDifficulty,
-                    date: new Date().toISOString()
-                });
+                this.state.user.progress[dance].push(lessonEntry);
             }
 
             const idx = this.state.users.findIndex(u => u.email === this.state.user.email);
@@ -711,12 +1059,34 @@ const app = {
                 localStorage.setItem('sertao_users', JSON.stringify(this.state.users));
                 localStorage.setItem('sertao_user', JSON.stringify(this.state.user));
             }
+        } else {
+            // Visitante: salva progresso local (sem troféus/títulos)
+            const guestProgress = JSON.parse(localStorage.getItem('sertao_guest_progress') || '{}');
+            if (!guestProgress[dance]) guestProgress[dance] = [];
+            const gi = guestProgress[dance].findIndex(l => l.title === this.state.lessonTitle);
+            if (gi !== -1) {
+                guestProgress[dance][gi] = { ...guestProgress[dance][gi], ...lessonEntry };
+            } else {
+                guestProgress[dance].push(lessonEntry);
+            }
+            localStorage.setItem('sertao_guest_progress', JSON.stringify(guestProgress));
         }
 
         // Update UI logic
         this.renderTrilhas(this.state.currentTrilhaTab || 'casal');
         this.updateHomeResumeCard();
         this._syncProfileUI();
+
+        // Confete sempre ao avaliar uma aula
+        playConfetti();
+        AudioSystem.sfxConfetti();
+
+        // Detectar troféus recém-desbloqueados — guardar para disparar ao voltar à trilha
+        const after = this._getTrophySnapshot();
+        const newTrophies = [...after].filter(t => !before.has(t));
+        if (newTrophies.length > 0) {
+            this.state.pendingTrophyUnlock = newTrophies[0];
+        }
 
         // Switch to Share Step
         const step1 = document.getElementById('fitness-step-eval');
@@ -725,12 +1095,128 @@ const app = {
         if (step2) step2.style.display = 'block';
     },
 
+    /* ======================================================
+       PREFERÊNCIA MUSICAL
+       ====================================================== */
+
+    // Verifica preferência ao iniciar uma aula.
+    // Só age se o usuário NUNCA escolheu — exibe o modal uma única vez.
+    // Se já escolheu (spotify ou default), não faz nada automaticamente.
+    _checkMusicPref() {
+        const pref = localStorage.getItem('brm_music_pref');
+        if (!pref) {
+            // Primeira vez em qualquer aula: mostra modal
+            setTimeout(() => this._openMusicPrefModal(), 1200);
+        }
+        // Preferência já salva → respeita sem abrir nada automaticamente
+    },
+
+    _openMusicPrefModal() {
+        const modal = document.getElementById('music-pref-modal');
+        if (!modal) return;
+        const sheet = modal.querySelector('div');
+        if (sheet) {
+            sheet.style.transition = 'none';
+            sheet.style.transform  = 'translateY(100%)';
+        }
+        modal.style.display = 'flex';
+        // setTimeout garante que o browser renderiza display:flex antes de animar
+        setTimeout(() => {
+            if (sheet) {
+                sheet.style.transition = 'transform .35s cubic-bezier(.32,1,.5,1)';
+                sheet.style.transform  = 'translateY(0)';
+            }
+        }, 20);
+    },
+
+    _closeMusicPrefModal() {
+        const modal = document.getElementById('music-pref-modal');
+        if (!modal) return;
+        const sheet = modal.firstElementChild;
+        if (sheet) {
+            sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => { modal.style.display = 'none'; }, 360);
+        } else {
+            modal.style.display = 'none';
+        }
+    },
+
+    setMusicPref(pref) {
+        localStorage.setItem('brm_music_pref', pref);
+        this._closeMusicPrefModal();
+        this._syncMusicPrefUI();
+
+        if (pref === 'spotify') {
+            // Para a música padrão (se estava tocando) e abre o Spotify
+            AudioSystem.stopBg();
+            this.openSpotifyPlaylist();
+        } else {
+            // Garante que a música padrão inicie
+            AudioSystem.resumeBg();
+        }
+    },
+
+    dismissMusicPref() {
+        // "Decidir depois" — fecha o modal mas não salva preferência.
+        // Continuará usando a música padrão até o usuário escolher.
+        this._closeMusicPrefModal();
+        AudioSystem.resumeBg();
+    },
+
+    openSpotifyPlaylist() {
+        // Tenta abrir a URI nativa (abre diretamente no app Spotify no celular).
+        // Se falhar ou o usuário não tiver o app, redireciona para a versão web.
+        const isAndroid = /android/i.test(navigator.userAgent);
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isAndroid || isIOS) {
+            // Deep link nativo → fallback web após 1.5s se o app não abrir
+            const start = Date.now();
+            window.location.href = SPOTIFY_URI;
+            setTimeout(() => {
+                if (Date.now() - start < 2000) {
+                    window.open(SPOTIFY_PLAYLIST_URL, '_blank', 'noopener');
+                }
+            }, 1500);
+        } else {
+            window.open(SPOTIFY_PLAYLIST_URL, '_blank', 'noopener');
+        }
+    },
+
+    resetMusicPref() {
+        localStorage.removeItem('brm_music_pref');
+        this._syncMusicPrefUI();
+        AudioSystem.resumeBg();
+        // Feedback visual rápido no botão
+        const btn = document.getElementById('btn-reset-music-pref');
+        if (btn) {
+            const orig = btn.textContent;
+            btn.textContent = 'Redefinido ✓';
+            btn.disabled = true;
+            setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
+        }
+    },
+
+    _syncMusicPrefUI() {
+        const pref  = localStorage.getItem('brm_music_pref') || 'default';
+        const lblEl = document.getElementById('lbl-music-pref');
+        const btnSp = document.getElementById('sm-spotify');
+        const btnDf = document.getElementById('sm-default');
+        const rowSp = document.getElementById('row-spotify-open');
+
+        if (lblEl) lblEl.textContent = pref === 'spotify' ? 'Spotify' : 'Música padrão do app';
+        if (btnSp) btnSp.classList.toggle('active', pref === 'spotify');
+        if (btnDf) btnDf.classList.toggle('active', pref === 'default');
+        if (rowSp) rowSp.style.display = pref === 'spotify' ? '' : 'none';
+    },
+
     shareProgress() {
         // Log achievement
+        const alreadyShared = this.state.user && this.state.user.achievements && this.state.user.achievements.sharedFirstTime;
+
         if (this.state.isLoggedIn && this.state.user) {
             if (!this.state.user.achievements) this.state.user.achievements = {};
             this.state.user.achievements.sharedFirstTime = true;
-            
+
             // Save to current user and users array
             localStorage.setItem('sertao_user', JSON.stringify(this.state.user));
             const idx = this.state.users.findIndex(u => u.email === this.state.user.email);
@@ -740,13 +1226,19 @@ const app = {
             }
         }
 
+        // Troféu Embaixador Junino — primeira vez que compartilha
+        if (!alreadyShared) {
+            setTimeout(() => playTrophyUnlock('Embaixador Junino'), 1000);
+        }
+
         const shareText = `Acabei de concluir a aula '${this.state.lessonTitle}' no app Brasil em Movimento! Vem dançar também!`;
-        
+        const shareUrl = window.location.origin + window.location.pathname;
+
         if (navigator.share) {
             navigator.share({
                 title: 'Brasil em Movimento',
                 text: shareText,
-                url: 'https://app.brasilemmovimento.com.br'
+                url: shareUrl
             }).then(() => {
                 this.continueFromFeedback();
             }).catch(e => {
@@ -911,6 +1403,14 @@ const app = {
             const btn = document.getElementById(`ttab-${t}`);
             if (btn) btn.classList.toggle('active', t === tab);
         });
+
+        // Aplica tema de cor conforme a função
+        const view = document.getElementById('view-trilhas');
+        if (view) {
+            view.classList.remove('theme-cavalheiro', 'theme-dama', 'theme-casal');
+            view.classList.add(`theme-${tab}`);
+        }
+
         this.renderTrilhas(tab);
     },
 
@@ -1221,7 +1721,15 @@ const app = {
             return;
         }
 
-        const newUser = { name, email, password };
+        const newUser = { name, email, password, progress: {}, achievements: {} };
+
+        // Migra progresso feito como visitante para a conta recém-criada
+        const guestProgress = JSON.parse(localStorage.getItem('sertao_guest_progress') || '{}');
+        if (Object.keys(guestProgress).length > 0) {
+            newUser.progress = guestProgress;
+            localStorage.removeItem('sertao_guest_progress');
+        }
+
         this.state.users.push(newUser);
         localStorage.setItem('sertao_users', JSON.stringify(this.state.users));
 
@@ -1458,16 +1966,14 @@ const app = {
         if (!card || !titleEl) return;
 
         if (!this.state.isLoggedIn || !this.state.user || !this.state.user.progress) {
-            // Default state — no progress
+            const headingEl = document.getElementById('resume-section-title');
+            if (headingEl) headingEl.innerText = 'Sua jornada começa aqui 🎉';
             if (tagEl) tagEl.innerText = 'QUADRILHA - CASAL';
             if (titleEl) titleEl.innerText = 'Marcação Básica';
             if (pctEl) pctEl.innerText = '0% concluído';
             if (fillEl) fillEl.style.width = '0%';
             if (timeEl) timeEl.innerText = 'Comece agora';
-            card.onclick = () => {
-                this.navigate('trilhas');
-                this.switchTrilhaTab('casal');
-            };
+            card.onclick = () => this.navigate('trilhas');
             return;
         }
         
@@ -1488,12 +1994,15 @@ const app = {
         });
         
         if (!lastDance) {
-            // Has progress object but no entries
+            // Tem conta mas nenhuma aula concluída ainda
+            const headingEl = document.getElementById('resume-section-title');
+            if (headingEl) headingEl.innerText = 'Sua jornada começa aqui 🎉';
             if (tagEl) tagEl.innerText = 'QUADRILHA - CASAL';
             if (titleEl) titleEl.innerText = 'Marcação Básica';
             if (pctEl) pctEl.innerText = '0% concluído';
             if (fillEl) fillEl.style.width = '0%';
             if (timeEl) timeEl.innerText = 'Comece agora';
+            card.onclick = () => this.navigate('trilhas');
             return;
         }
 
@@ -1518,6 +2027,8 @@ const app = {
             if (nextLessonTitle !== lastLesson.title) break;
         }
 
+        const headingEl = document.getElementById('resume-section-title');
+        if (headingEl) headingEl.innerText = 'Continue de onde parou';
         if (tagEl) tagEl.innerText = `QUADRILHA - ${lastDance.toUpperCase()}`;
         if (titleEl) titleEl.innerText = nextLessonTitle;
         if (pctEl) pctEl.innerText = `${pct}% concluído`;

@@ -20,6 +20,9 @@
 
     <!-- Styles -->
     <link href="css/main.css" rel="stylesheet">
+
+    <!-- Lottie (animações vetoriais — confete) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
 </head>
 
 <body>
@@ -61,7 +64,7 @@
                     </div>
                     <p id="login-error" class="auth-error" aria-live="polite"></p>
                     <button type="submit" class="btn-primary" id="btn-login-submit">Entrar</button>
-                    <p class="auth-link">Esqueceu a senha? <a href="#">Recuperar acesso</a></p>
+                    <p class="auth-link">Sem conta? <span style="color:var(--primary);cursor:pointer;font-weight:600;" onclick="app.switchAuthTab('register')">Cadastre-se grátis</span></p>
                 </form>
 
                 <!-- Register Form -->
@@ -137,6 +140,21 @@
 
                     <button class="btn-primary" onclick="app.submitFitnessFeedback()" id="btn-fitness-submit"
                         disabled>Salvar & Continuar</button>
+
+                    <!-- Aviso para visitantes — só aparece se não logado -->
+                    <div id="guest-eval-notice" style="display:none; margin-top:16px; padding:12px 14px;
+                         background:rgba(253,94,41,0.07); border:1px solid rgba(253,94,41,0.2);
+                         border-radius:12px; text-align:left;">
+                        <p style="font-size:0.78rem; color:var(--text-main); margin:0 0 8px; line-height:1.4;">
+                            <strong>🏆 Quer troféus e títulos?</strong><br>
+                            Seu progresso desta aula é salvo localmente, mas conquistas e títulos só ficam disponíveis com uma conta gratuita.
+                        </p>
+                        <button onclick="app.openAuthModal()"
+                                style="background:var(--primary); color:#fff; border:none; padding:7px 16px;
+                                       border-radius:32px; font-size:0.76rem; font-weight:700; cursor:pointer; width:100%;">
+                            Criar conta grátis
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Passo 2: Share -->
@@ -149,7 +167,7 @@
                     <button class="btn-primary" onclick="app.shareProgress()" style="margin-bottom: 16px; background: linear-gradient(135deg, #e1306c 0%, #f56040 100%); border: none;">
                         <i  class="ti ti-share"></i> Compartilhar 📸
                     </button>
-                    <button class="btn-secondary" onclick="app.closeFitnessFeedback()">Continuar Trilha</button>
+                    <button class="btn-secondary" onclick="app.continueFromFeedback()">Continuar Trilha</button>
                 </div>
             </div>
         </div>
@@ -198,7 +216,7 @@
                     </div>
                 </div>
 
-                <h2 class="section-title">Continue de onde parou</h2>
+                <h2 class="section-title" id="resume-section-title">Continue de onde parou</h2>
                 <div class="resume-card" id="resume-card" onclick="app.navigate('trilhas'); app.switchTrilhaTab('casal');"
                     role="button" tabindex="0" aria-label="Continuar Trilhas"
                     style="background: #0470dd; padding: 24px 20px 20px;">
@@ -273,10 +291,10 @@
 
             <div class="trilhas-dino-progress">
                 <p class="dino-journey-label">Sua Jornada</p>
-                <div style="position: relative; width: 100%; height: 2px; background: rgba(253,94,41,0.18); margin: 20px 0 10px;">
-                    <div id="dino-progress-fill" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--primary); transition: width 0.5s ease;"></div>
+                <div style="position: relative; width: 100%; height: 2px; background: var(--trilha-border, rgba(253,94,41,0.18)); margin: 20px 0 10px;">
+                    <div id="dino-progress-fill" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--trilha-color, var(--primary)); transition: width 0.5s ease;"></div>
 
-                    <div style="position: absolute; left: 0%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-horse-toy" style="color: var(--primary);"></i></div>
+                    <div style="position: absolute; left: 0%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-horse-toy" style="color: var(--trilha-color, var(--primary));"></i></div>
                     <div style="position: absolute; left: 25%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-cactus" style="color: var(--accent-green);"></i></div>
                     <div style="position: absolute; left: 50%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-sun-filled" style="color: var(--secondary);"></i></div>
                     <div style="position: absolute; left: 75%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-flame" style="color: var(--primary);"></i></div>
@@ -291,6 +309,7 @@
 
         <!-- ==================== VIEW: EXPERIENCE (VIDEO) ==================== -->
         <section id="view-experience" class="view video-mode" aria-label="Aula em vídeo">
+
             <div class="video-container">
 
                 <!-- Video background / placeholder -->
@@ -337,6 +356,10 @@
                             aria-pressed="false">
                             <i  class="ti ti-bulb"></i>
                             <small>Dicas</small>
+                        </button>
+                        <button class="control-btn" id="btn-music" onclick="AudioSystem.toggleMusic()" aria-label="Música" aria-pressed="true">
+                            <i class="ti ti-music" id="music-icon"></i>
+                            <small>Música</small>
                         </button>
                     </div>
 
@@ -790,6 +813,55 @@
                     </div>
                 </div>
 
+                <!-- Group: Música -->
+                <div class="settings-group">
+                    <p class="settings-group-label">Música</p>
+
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <i class="ti ti-music"></i>
+                            <div>
+                                <span class="settings-row-title">Fonte de música</span>
+                                <span class="settings-row-sub" id="lbl-music-pref">Música padrão do app</span>
+                            </div>
+                        </div>
+                        <div class="seg-control" role="group" aria-label="Fonte de música">
+                            <button class="seg-btn" id="sm-spotify"
+                                    onclick="app.setMusicPref('spotify', this)"
+                                    title="Abrir no Spotify">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.077-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.519.781.781 0 0 1 .52-.972c3.632-1.102 8.147-.568 11.233 1.328a.78.78 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.794c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.954 1.614l-.001-.001z"/>
+                                </svg>
+                            </button>
+                            <button class="seg-btn active" id="sm-default"
+                                    onclick="app.setMusicPref('default', this)"
+                                    title="Música padrão">
+                                <i class="ti ti-music" style="font-size:14px;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-row settings-row--link" id="row-spotify-open"
+                         onclick="app.openSpotifyPlaylist()" style="display:none;">
+                        <div class="settings-row-info">
+                            <i class="ti ti-brand-spotify" style="color:#1DB954;"></i>
+                            <div>
+                                <span class="settings-row-title">Abrir playlist agora</span>
+                                <span class="settings-row-sub">Quadrilha &amp; Forró — curada pela equipe</span>
+                            </div>
+                        </div>
+                        <i class="ti ti-chevron-right" style="color:var(--text-muted);"></i>
+                    </div>
+
+                    <div class="settings-row" style="justify-content:flex-end; padding-top:4px; padding-bottom:4px;">
+                        <button id="btn-reset-music-pref"
+                                onclick="app.resetMusicPref()"
+                                style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 0;text-decoration:underline;">
+                            Redefinir preferência de música
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Group: Acessibilidade -->
                 <div class="settings-group">
                     <p class="settings-group-label">Acessibilidade</p>
@@ -858,7 +930,7 @@
                         <i  class="ti ti-chevron-right"></i>
                     </div>
 
-                    <div class="settings-row settings-row--link">
+                    <div class="settings-row settings-row--link" onclick="app.navigate('privacy')">
                         <div class="settings-row-info">
                             <i  class="ti ti-shield"></i>
                             <span class="settings-row-title">Política de Privacidade</span>
@@ -866,7 +938,7 @@
                         <i  class="ti ti-chevron-right"></i>
                     </div>
 
-                    <div class="settings-row settings-row--link">
+                    <div class="settings-row settings-row--link" onclick="app.navigate('terms')">
                         <div class="settings-row-info">
                             <i  class="ti ti-description"></i>
                             <span class="settings-row-title">Termos de Uso</span>
@@ -1018,7 +1090,182 @@
             </a>
         </nav>
 
-    </div>
+
+        <!-- ==================== VIEW: POLÍTICA DE PRIVACIDADE ==================== -->
+        <section id="view-privacy" class="view" aria-label="Política de Privacidade">
+            <header class="app-header" style="border-bottom:2px solid rgba(253,94,41,0.15);">
+                <button class="back-btn-inline" onclick="app.navigate('settings')" aria-label="Voltar">
+                    <i class="ti ti-arrow-left"></i>
+                </button>
+                <h2>Privacidade</h2>
+            </header>
+            <main class="dance-detail-content" style="padding:20px 20px 40px; overflow-y:auto;">
+                <h3 style="color:var(--primary);font-size:1.3rem;font-weight:800;margin-bottom:4px;">Política de Privacidade</h3>
+                <p style="font-size:0.72rem;color:var(--text-light);margin-bottom:20px;">Versão 1.0 — 14 de junho de 2026</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">1. Quem somos</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">O <strong>Brasil em Movimento</strong> é desenvolvido pelo Laboratório de Projeto de Interface e pelo Laboratório de Audiovisual do Curso de Desenho Industrial da <strong>UFSM</strong>, no âmbito do projeto de extensão universitária "Design de Interfaces para Problemas Reais", semestre 1/2026.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">2. Dados que coletamos</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:8px;color:var(--text-main);">Todos os dados são armazenados <strong>exclusivamente no seu dispositivo</strong> via <em>localStorage</em> do navegador — nunca em servidores externos. Coletamos apenas:</p>
+                <ul style="font-size:0.85rem;line-height:1.8;margin:0 0 16px;padding-left:20px;color:var(--text-main);">
+                    <li><strong>Dados de cadastro:</strong> nome, e-mail e senha (para autenticação local)</li>
+                    <li><strong>Progresso:</strong> aulas concluídas, avaliações (estrelas) e troféus desbloqueados</li>
+                    <li><strong>Preferências:</strong> tema visual, qualidade de vídeo, configurações de áudio</li>
+                </ul>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">3. O que não coletamos</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">Não coletamos geolocalização, identificadores de dispositivo, dados biométricos, informações financeiras ou qualquer dado fora do app. <strong>Nenhum dado é transmitido pela internet.</strong></p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">4. Compartilhamento</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">Não vendemos, cedemos ou compartilhamos seus dados com terceiros. A funcionalidade de redirecionamento ao Spotify é opcional e não transmite dados ao Spotify — apenas abre um link público.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">5. Seus direitos (LGPD)</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:8px;color:var(--text-main);">De acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), você tem direito a:</p>
+                <ul style="font-size:0.85rem;line-height:1.8;margin:0 0 16px;padding-left:20px;color:var(--text-main);">
+                    <li><strong>Acesso:</strong> visualize seus dados em Perfil e Histórico</li>
+                    <li><strong>Exclusão:</strong> limpe o cache do navegador para apagar todos os dados</li>
+                    <li><strong>Portabilidade:</strong> seus dados estão no <em>localStorage</em> em formato JSON, acessível pelas ferramentas do navegador</li>
+                </ul>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">6. Menores de idade</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">O uso por menores de 18 anos deve ocorrer com conhecimento e acompanhamento de um responsável legal.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">7. Atualizações</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:24px;color:var(--text-main);">Esta política pode ser atualizada. O uso continuado do app após alterações publicadas constitui aceitação da versão atualizada.</p>
+
+                <p style="font-size:0.72rem;color:var(--text-light);text-align:center;border-top:1px solid var(--border);padding-top:16px;">Brasil em Movimento — UFSM · Laboratório de Projeto de Interface<br>Para o documento completo, acesse POLITICA-DE-PRIVACIDADE.md no repositório do projeto.</p>
+            </main>
+        </section>
+
+        <!-- ==================== VIEW: TERMOS DE USO ==================== -->
+        <section id="view-terms" class="view" aria-label="Termos de Uso">
+            <header class="app-header" style="border-bottom:2px solid rgba(253,94,41,0.15);">
+                <button class="back-btn-inline" onclick="app.navigate('settings')" aria-label="Voltar">
+                    <i class="ti ti-arrow-left"></i>
+                </button>
+                <h2>Termos de Uso</h2>
+            </header>
+            <main class="dance-detail-content" style="padding:20px 20px 40px; overflow-y:auto;">
+                <h3 style="color:var(--primary);font-size:1.3rem;font-weight:800;margin-bottom:4px;">Termos de Uso</h3>
+                <p style="font-size:0.72rem;color:var(--text-light);margin-bottom:20px;">Versão 1.0 — 14 de junho de 2026</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">1. Aceitação</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">Ao usar o <strong>Brasil em Movimento</strong>, você concorda com estes Termos. O app é um projeto acadêmico de extensão da <strong>UFSM</strong> — Laboratório de Projeto de Interface e Laboratório de Audiovisual, Curso de Desenho Industrial, semestre 1/2026.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">2. Licença de uso</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">Concedemos uma licença <strong>limitada, gratuita, não transferível e revogável</strong> para uso pessoal e educacional. É proibido copiar, redistribuir, modificar ou explorar comercialmente o conteúdo do app sem autorização expressa.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">3. Propriedade intelectual</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">Todos os vídeos, design, animações, modelos 3D de troféus e marca "Brasil em Movimento" são protegidos por direito autoral. A música de fundo é licença Pixabay Content License (uso livre). Ícones: Tabler Icons (MIT). Tecnologias 3D: model-viewer (Apache 2.0).</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">4. Trilhas e saúde</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">O conteúdo foi desenvolvido com apoio do professor Jessé Cruz (Curso de Dança da UFSM). O app <strong>não substitui orientação de profissional de saúde ou educação física</strong>. Interrompa a atividade se sentir dor ou desconforto. A equipe não se responsabiliza por lesões decorrentes da prática.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">5. Sistema de troféus</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">Os troféus são conquistas virtuais sem valor monetário, comercial ou de certificação. Não constituem diplomas ou reconhecimento formal de habilidades em dança.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">6. Disponibilidade</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">O app é disponibilizado "no estado em que se encontra". A equipe não garante disponibilidade ininterrupta. Dados de progresso ficam armazenados apenas no seu dispositivo — a equipe não pode recuperar dados perdidos por limpeza de cache.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">7. Compartilhamento</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">A funcionalidade de compartilhamento usa a API nativa do dispositivo. O usuário é responsável pelo conteúdo compartilhado. O primeiro compartilhamento desbloqueia o troféu "Embaixador Junino".</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">8. Modificações</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:16px;color:var(--text-main);">A equipe pode alterar o app e estes Termos a qualquer momento. O uso continuado após alterações constitui aceitação das novas condições.</p>
+
+                <h4 style="font-size:0.95rem;font-weight:700;margin:0 0 6px;">9. Lei aplicável</h4>
+                <p style="font-size:0.85rem;line-height:1.6;margin-bottom:24px;color:var(--text-main);">Estes Termos são regidos pelas leis brasileiras (CDC, Marco Civil da Internet, LGPD). Foro: Comarca de Santa Maria, RS.</p>
+
+                <p style="font-size:0.72rem;color:var(--text-light);text-align:center;border-top:1px solid var(--border);padding-top:16px;">Brasil em Movimento — UFSM · Laboratório de Projeto de Interface<br>Para o documento completo, acesse TERMOS-DE-USO.md no repositório do projeto.</p>
+            </main>
+        </section>
+
+        <!-- ==================== MODAL: PREFERÊNCIA MUSICAL ==================== -->
+        <div id="music-pref-modal" role="dialog" aria-modal="true" aria-labelledby="music-pref-title"
+             style="display:none; position:absolute; inset:0; z-index:10100;
+                    background:rgba(0,0,0,0.55); backdrop-filter:blur(4px);
+                    -webkit-backdrop-filter:blur(4px);
+                    align-items:flex-end; justify-content:center;">
+        <div style="background:var(--card-bg,#fff); border-radius:28px 28px 0 0;
+                    width:100%; max-width:414px; padding:28px 24px 36px;
+                    box-shadow:0 -8px 40px rgba(0,0,0,0.25);">
+
+            <!-- Handle -->
+            <div style="width:40px; height:4px; border-radius:2px;
+                        background:rgba(0,0,0,0.15); margin:0 auto 22px;"></div>
+
+            <p style="font-size:0.7rem; font-weight:700; letter-spacing:.08em;
+                       text-transform:uppercase; color:var(--text-muted,#888); margin:0 0 6px;">
+                Música de fundo
+            </p>
+            <h3 id="music-pref-title"
+                style="font-size:1.1rem; font-weight:800; margin:0 0 6px; color:var(--text-main);">
+                Como prefere ouvir?
+            </h3>
+            <p style="font-size:0.82rem; color:var(--text-muted,#888); margin:0 0 22px; line-height:1.45;">
+                Escolha entre nossa trilha instrumental ou a playlist <strong style="color:var(--text-main);">"Quadrilha"</strong> — 70 músicas de forró e baião, curada pelo Spotify.
+            </p>
+
+            <!-- Opção Spotify -->
+            <button onclick="app.setMusicPref('spotify')"
+                    style="display:flex; align-items:center; gap:14px; width:100%;
+                           background:var(--bg-2,#f5f5f5); border:2px solid transparent;
+                           border-radius:16px; padding:14px 16px; margin-bottom:10px;
+                           cursor:pointer; text-align:left; transition:border-color .2s;">
+                <span style="width:40px; height:40px; border-radius:12px;
+                              background:#1DB954; display:flex; align-items:center;
+                              justify-content:center; flex-shrink:0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.623.623 0 0 1-.277-1.215c3.809-.87 7.077-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 0 1-.973-.519.781.781 0 0 1 .52-.972c3.632-1.102 8.147-.568 11.233 1.328a.78.78 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71a.937.937 0 1 1-.543-1.794c3.532-1.072 9.404-.865 13.115 1.338a.937.937 0 0 1-.954 1.614l-.001-.001z"/>
+                    </svg>
+                </span>
+                <div>
+                    <p style="font-size:0.88rem; font-weight:700; color:var(--text-main); margin:0 0 2px;">
+                        Abrir no Spotify
+                    </p>
+                    <p style="font-size:0.75rem; color:var(--text-muted,#888); margin:0;">
+                        Playlist de quadrilha curada por nós
+                    </p>
+                </div>
+            </button>
+
+            <!-- Opção Padrão -->
+            <button onclick="app.setMusicPref('default')"
+                    style="display:flex; align-items:center; gap:14px; width:100%;
+                           background:var(--bg-2,#f5f5f5); border:2px solid transparent;
+                           border-radius:16px; padding:14px 16px; margin-bottom:18px;
+                           cursor:pointer; text-align:left; transition:border-color .2s;">
+                <span style="width:40px; height:40px; border-radius:12px;
+                              background:var(--primary,#fd5e29); display:flex; align-items:center;
+                              justify-content:center; flex-shrink:0;">
+                    <i class="ti ti-music" style="color:#fff; font-size:1.2rem;"></i>
+                </span>
+                <div>
+                    <p style="font-size:0.88rem; font-weight:700; color:var(--text-main); margin:0 0 2px;">
+                        Música padrão do app
+                    </p>
+                    <p style="font-size:0.75rem; color:var(--text-muted,#888); margin:0;">
+                        Instrumental de quadrilha, sem sair do app
+                    </p>
+                </div>
+            </button>
+
+            <!-- Decidir depois -->
+            <button onclick="app.dismissMusicPref()"
+                    style="display:block; width:100%; background:none; border:none;
+                           color:var(--text-muted,#888); font-size:0.8rem; cursor:pointer;
+                           padding:0; text-align:center;">
+                Decidir depois
+            </button>
+        </div>
+        </div><!-- /music-pref-modal -->
+    </div><!-- /app-container -->
+
+    <!-- Overlay de confete (Lottie) -->
+    <div id="confetti-overlay" aria-hidden="true"></div>
+    <!-- Overlay de troféu (Lottie) -->
+    <div id="trophy-overlay" aria-hidden="true"></div>
 
     <!-- 3D Model Viewer Script -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>

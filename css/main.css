@@ -683,37 +683,73 @@ input { font-family: var(--font-body); }
    TRILHAS VIEW
    ====================================================== */
 
-/* Trilhas header — bold orange brand treatment */
+/* Trilhas — tema dinâmico por função */
+#view-trilhas {
+    --trilha-color:  var(--primary);
+    --trilha-text:   #fff;
+    --trilha-shadow: rgba(253,94,41,0.4);
+    --trilha-tint:   rgba(253,94,41,0.08);
+    --trilha-border: rgba(253,94,41,0.15);
+    --trilha-label:  var(--primary);
+}
+#view-trilhas.theme-cavalheiro {
+    --trilha-color:  #0470dd;
+    --trilha-shadow: rgba(4,112,221,0.35);
+    --trilha-tint:   rgba(4,112,221,0.07);
+    --trilha-border: rgba(4,112,221,0.15);
+    --trilha-label:  #0470dd;
+}
+#view-trilhas.theme-dama {
+    --trilha-color:  #fed02d;
+    --trilha-text:   #3a1a00;
+    --trilha-shadow: rgba(254,208,45,0.5);
+    --trilha-tint:   rgba(254,208,45,0.12);
+    --trilha-border: rgba(254,208,45,0.35);
+    --trilha-label:  #a06800;
+}
+#view-trilhas.theme-casal {
+    --trilha-color:  #8b1a1a;
+    --trilha-shadow: rgba(139,26,26,0.4);
+    --trilha-tint:   rgba(139,26,26,0.07);
+    --trilha-border: rgba(139,26,26,0.15);
+    --trilha-label:  #8b1a1a;
+}
+
+/* Header */
 #view-trilhas .app-header {
-    background: var(--primary);
+    background: var(--trilha-color);
     padding-bottom: 20px;
+    transition: background 0.3s ease;
 }
 #view-trilhas .app-header h2 {
-    color: #fff;
+    color: var(--trilha-text);
     font-weight: 800;
     font-size: 2.2rem;
     letter-spacing: -0.5px;
+    transition: color 0.3s ease;
 }
 #view-trilhas .app-header .header-sub {
-    color: rgba(255, 255, 255, 0.75);
+    color: color-mix(in srgb, var(--trilha-text) 70%, transparent);
 }
 
 /* Trilhas progress band */
 .trilhas-dino-progress {
-    background: rgba(253, 94, 41, 0.06);
-    border: 1px solid rgba(253, 94, 41, 0.14);
+    background: var(--trilha-tint);
+    border: 1px solid var(--trilha-border);
     border-radius: var(--radius);
     margin: 0 16px 24px;
     padding: 12px 16px;
     text-align: center;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 .trilhas-dino-progress .dino-journey-label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--trilha-label);
     margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    transition: color 0.3s ease;
 }
 
 /* Tabs */
@@ -728,9 +764,10 @@ input { font-family: var(--font-body); }
     color: var(--text-light);
     transition: background var(--anim), color var(--anim), box-shadow var(--anim);
 }
-.trilha-tab.active {
-    background: var(--primary); color: #fff;
-    box-shadow: 0 2px 10px rgba(253,94,41,0.4);
+#view-trilhas .trilha-tab.active {
+    background: var(--trilha-color);
+    color: var(--trilha-text);
+    box-shadow: 0 2px 10px var(--trilha-shadow);
 }
 
 /* Dance banner inside trilhas */

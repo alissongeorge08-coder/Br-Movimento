@@ -1,0 +1,12 @@
+Pasta para a música de fundo do BR + Movimento.
+
+PASSO A PASSO:
+1. Acesse: https://pixabay.com/music/folk-passos-de-quadrilha-instrumental-de-festa-junina-com-sanfona-334983/
+2. Clique em "Free Download" (botão verde)
+3. Baixe o arquivo MP3
+4. Renomeie o arquivo para: quadrilha.mp3
+5. Coloque-o aqui nesta pasta (audio/quadrilha.mp3)
+6. Recarregue o app — a música tocará automaticamente!
+
+Licença: Pixabay Content License (uso gratuito, inclusive comercial)
+Crédito: RonaldoReyz — "Passos de Quadrilha - Instrumental de Festa Junina com Sanfona"
