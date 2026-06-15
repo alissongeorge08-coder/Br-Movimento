@@ -184,7 +184,10 @@ const AudioSystem = {
    ------------------------------------------------ */
 function playConfetti() {
     const el = document.getElementById('confetti-overlay');
-    if (!el || typeof lottie === 'undefined') return;
+    if (!el || typeof lottie === 'undefined') {
+        console.warn('[Lottie] confetti: elemento não encontrado ou lottie.js não carregou.', { el, lottie: typeof lottie });
+        return;
+    }
 
     // Estilo do overlay (pointer-events:none para não bloquear cliques)
     Object.assign(el.style, {
@@ -201,7 +204,12 @@ function playConfetti() {
         renderer: 'svg',
         loop: false,
         autoplay: true,
-        path: 'image/celebration_confetti.json.json'
+        path: 'image/celebration_confetti.json'
+    });
+
+    anim.addEventListener('data_failed', () => {
+        console.error('[Lottie] Falha ao carregar celebration_confetti.json. Verifique: (1) o arquivo existe em image/celebration_confetti.json, (2) o app está servido via HTTP (não file://).');
+        el.style.display = 'none';
     });
 
     // Limpa o overlay ao terminar
@@ -223,7 +231,10 @@ function playConfetti() {
    ------------------------------------------------ */
 function playTrophyUnlock(trophyName) {
     const el = document.getElementById('trophy-overlay');
-    if (!el || typeof lottie === 'undefined') return;
+    if (!el || typeof lottie === 'undefined') {
+        console.warn('[Lottie] trophy: elemento não encontrado ou lottie.js não carregou.', { el, lottie: typeof lottie });
+        return;
+    }
     AudioSystem.sfxTrophy();
 
     // Fica limitado ao container do app (shell mobile 414px)
@@ -257,6 +268,11 @@ function playTrophyUnlock(trophyName) {
         path:      'image/trofeu.json'
     });
     anim.setSpeed(0.6);
+
+    anim.addEventListener('data_failed', () => {
+        console.error('[Lottie] Falha ao carregar trofeu.json. Verifique: (1) o arquivo existe em image/trofeu.json, (2) o app está servido via HTTP (não file://).');
+        el.style.display = 'none';
+    });
 
     // Toast aparece logo abaixo da animação, centralizado no shell
     const toastTop = appTop + appHeight * 0.05 + animH + 8;
@@ -1164,21 +1180,30 @@ const app = {
     },
 
     openSpotifyPlaylist() {
-        // Tenta abrir a URI nativa (abre diretamente no app Spotify no celular).
-        // Se falhar ou o usuário não tiver o app, redireciona para a versão web.
+        // Nunca abre nova aba — tudo na mesma janela do navegador.
         const isAndroid = /android/i.test(navigator.userAgent);
-        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        if (isAndroid || isIOS) {
-            // Deep link nativo → fallback web após 1.5s se o app não abrir
-            const start = Date.now();
+        const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+        if (isAndroid) {
+            // Intent URL: abre o app Spotify se instalado; se não, vai à Play Store.
+            // Tudo dentro da mesma aba — sem window.open.
+            const playlistId = '37i9dQZF1DXbFmIQ7xHuBO';
+            window.location.href =
+                'intent://playlist/' + playlistId +
+                '#Intent;scheme=spotify;package=com.spotify.music;' +
+                'S.browser_fallback_url=' + encodeURIComponent(SPOTIFY_PLAYLIST_URL) + ';end';
+
+        } else if (isIOS) {
+            // Deep link nativo iOS; se o app não estiver instalado,
+            // redireciona para a versão web na mesma aba após 1.5s.
             window.location.href = SPOTIFY_URI;
             setTimeout(() => {
-                if (Date.now() - start < 2000) {
-                    window.open(SPOTIFY_PLAYLIST_URL, '_blank', 'noopener');
-                }
+                if (!document.hidden) window.location.href = SPOTIFY_PLAYLIST_URL;
             }, 1500);
+
         } else {
-            window.open(SPOTIFY_PLAYLIST_URL, '_blank', 'noopener');
+            // Desktop: mesma aba (não abre nova janela).
+            window.location.href = SPOTIFY_PLAYLIST_URL;
         }
     },
 
@@ -1209,7 +1234,7 @@ const app = {
         if (rowSp) rowSp.style.display = pref === 'spotify' ? '' : 'none';
     },
 
-    shareProgress() {
+    async shareProgress() {
         // Log achievement
         const alreadyShared = this.state.user && this.state.user.achievements && this.state.user.achievements.sharedFirstTime;
 
@@ -1234,20 +1259,31 @@ const app = {
         const shareText = `Acabei de concluir a aula '${this.state.lessonTitle}' no app Brasil em Movimento! Vem dançar também!`;
         const shareUrl = window.location.origin + window.location.pathname;
 
-        if (navigator.share) {
-            navigator.share({
-                title: 'Brasil em Movimento',
-                text: shareText,
-                url: shareUrl
-            }).then(() => {
-                this.continueFromFeedback();
-            }).catch(e => {
-                // Ignore cancel errors
-                this.continueFromFeedback();
-            });
-        } else {
-            // Fallback
-            alert('Progresso salvo para compartilhar!');
+        try {
+            // Baixa a imagem para compartilhar (isso ativa o Instagram Stories no celular)
+            const response = await fetch('image/Quadrilha.jpeg');
+            const blob = await response.blob();
+            const file = new File([blob], 'brasil_em_movimento.jpg', { type: blob.type });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: 'Brasil em Movimento',
+                    text: shareText,
+                    files: [file]
+                });
+            } else if (navigator.share) {
+                // Fallback sem imagem
+                await navigator.share({
+                    title: 'Brasil em Movimento',
+                    text: shareText,
+                    url: shareUrl
+                });
+            } else {
+                alert('Progresso salvo para compartilhar!');
+            }
+        } catch (e) {
+            console.error('Compartilhamento cancelado ou falhou:', e);
+        } finally {
             this.continueFromFeedback();
         }
     },
@@ -1350,25 +1386,30 @@ const app = {
 
     openTrophyInspection(type, isLocked = false, danceName = '') {
         const modal = document.getElementById('trophy-inspection-modal');
-        const viewer = document.getElementById('fullscreen-trophy-viewer');
+        const img = document.getElementById('fullscreen-trophy-img');
         const titleEl = document.getElementById('fs-trophy-title');
         const descEl = document.getElementById('fs-trophy-desc');
 
         let title = '';
         let desc = '';
+        let imgSrc = '';
 
         if (type === 'bronze') {
             title = 'Calouro do Salão';
             desc = 'Você deu os primeiros passos. Chegue à metade da trilha para conquistar este troféu.';
+            imgSrc = 'image/conquista1.jpeg';
         } else if (type === 'gold') {
             title = 'Rei da Marcação';
             desc = 'O chamado foi feito e você respondeu. Finalize a trilha para entrar no salão dos mestres.';
-        } else if (type === 'platinum') {
+            imgSrc = 'image/conquista2.jpeg';
+        } else if (type === 'plat' || type === 'platinum') {
             title = 'Patrimônio Vivo';
             desc = 'A dança vive em você. Conquiste 5 estrelas em todas as aulas e torne-se parte da tradição.';
-        } else if (type === 'influencer') {
+            imgSrc = 'image/conquista3.jpeg';
+        } else if (type === 'influencer' || type === 'social') {
             title = 'Embaixador Junino';
             desc = 'Você levou o ritmo para além da tela. Compartilhe seu progresso para conquistar este troféu.';
+            imgSrc = 'image/conquista4.jpeg';
         }
 
         if (titleEl) {
@@ -1378,8 +1419,7 @@ const app = {
             titleEl.innerHTML = title + extraInfo;
         }
         if (descEl) descEl.innerText = desc;
-
-        if (viewer) this._applyTrophyColor(viewer, type);
+        if (img) img.src = imgSrc;
 
         if (modal) {
             modal.classList.add('open');
@@ -1412,6 +1452,32 @@ const app = {
         }
 
         this.renderTrilhas(tab);
+    },
+
+    updateJornada(role) {
+        const fillEl  = document.getElementById('jornada-fill');
+        const dotsEl  = document.getElementById('jornada-dots');
+        const trackEl = document.getElementById('jornada-track');
+        if (!fillEl) return;
+
+        const rProgress    = this.state.user?.progress?.[role.name] || [];
+        const levelNames   = this.curriculum.levels.map(l => l.name);
+        const totalLessons = this.curriculum.steps.length * levelNames.length;
+        const pct          = Math.min(100, Math.floor((Math.min(rProgress.length, totalLessons) / totalLessons) * 100));
+
+        fillEl.style.width = pct + '%';
+        if (trackEl) trackEl.setAttribute('aria-valuenow', pct);
+
+        // Milestone dots — one per step
+        if (dotsEl) {
+            let dotsHtml = '';
+            this.curriculum.steps.forEach((step, sIdx) => {
+                const pos       = Math.round(((sIdx + 1) / this.curriculum.steps.length) * 100);
+                const isReached = pct >= pos;
+                dotsHtml += `<div class="jornada-dot${isReached ? ' reached' : ''}" style="left:${pos}%" title="Passo ${sIdx + 1}: ${step.title}"></div>`;
+            });
+            dotsEl.innerHTML = dotsHtml;
+        }
     },
 
     renderTrilhas(tab) {
@@ -1515,14 +1581,8 @@ const app = {
 
         container.innerHTML = html;
 
-        // Update Dino Bar
-        const dinoFill = document.getElementById('dino-progress-fill');
-        if (dinoFill) {
-            const rProgress = this.state.user?.progress?.[role.name] || [];
-            const evalCount = rProgress.length;
-            const dinoPct = Math.min(100, Math.floor((evalCount / 18) * 100));
-            dinoFill.style.width = dinoPct + '%';
-        }
+        // Update barra de jornada
+        this.updateJornada(role);
     },
 
     /* ======================================================
@@ -1853,92 +1913,137 @@ const app = {
                 const trophiesAll = document.getElementById('trophies-all');
                 let trophiesHtml = '';
 
-                // Build Social Trophy First
-                const hasShared = this.state.user.achievements && this.state.user.achievements.sharedFirstTime;
-                trophiesHtml += `
-                    <div class="trophy-card" onclick="app.openTrophyInspection('influencer')">
-                        <div class="trophy-card-viewer trophy-social" style="position: relative; opacity: ${hasShared ? '1' : '0.6'}; filter: ${hasShared ? 'none' : 'grayscale(100%)'};">
-                            <i  class="ti ti-lock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: rgba(255,255,255,0.8); z-index: 10; display: ${hasShared ? 'none' : 'block'};"></i>
-                            <model-viewer src="image/Trofeu.glb" disable-zoom disable-pan environment-image="neutral" exposure="0.5"></model-viewer>
-                        </div>
-                        <h4>Embaixador Junino</h4>
-                        <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden;">
-                            <div class="trophy-progress-fill" style="width: ${hasShared ? '100' : '0'}%; height: 100%; background: var(--primary);"></div>
-                        </div>
-                    </div>
-                `;
+                // ── Helpers ──────────────────────────────────────────
+                const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
-                const updateDanceProgress = (id) => {
-                    // id in progress is Capitalized (Casal, Dama, Cavalheiro)
-                    const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
-                    const danceId = capitalize(id);
-                    
-                    const lessons = this.state.user.progress && this.state.user.progress[danceId] ? this.state.user.progress[danceId] : [];
+                // Collect per-role data
+                const roles = ['Casal', 'Dama', 'Cavalheiro'];
+                const roleData = roles.map(r => {
+                    const lessons   = this.state.user.progress?.[r] ?? [];
                     const doneCount = lessons.length;
-                    
-                    let starsCount = 0;
-                    lessons.forEach(l => { starsCount += parseInt(l.stars || 0); });
-
-                    const totalCount = 18; // Fixed max 18 per role
-                    const pct = Math.round((doneCount / totalCount) * 100);
-
+                    let stars = 0;
+                    lessons.forEach(l => { stars += parseInt(l.stars || 0); });
+                    // also update progress bars in trilha view
+                    const id = r.toLowerCase();
                     const pctEl = document.getElementById(`pct-${id}`);
                     const barEl = document.getElementById(`bar-${id}`);
-
+                    const pct = Math.round((doneCount / 18) * 100);
                     if (pctEl) pctEl.innerText = `${pct}%`;
-                    if (barEl) {
-                        barEl.style.width = `${pct}%`;
-                        barEl.parentElement.setAttribute('aria-valuenow', pct);
-                    }
+                    if (barEl) { barEl.style.width = `${pct}%`; barEl.parentElement.setAttribute('aria-valuenow', pct); }
+                    return { r, doneCount, stars };
+                });
 
-                    // Generate trophies HTML for this role
-                    const hasBronze = doneCount >= 1;
-                    const hasGold = starsCount >= 45;
-                    const goldPct = Math.min((starsCount / 45) * 100, 100);
-                    const hasPlat = starsCount >= 90;
-                    const platPct = Math.min((starsCount / 90) * 100, 100);
+                // Count unlocked per trophy type
+                const bronzeUnlocked = roleData.filter(d => d.doneCount >= 1).length;
+                const goldUnlocked   = roleData.filter(d => d.stars >= 45).length;
+                const platUnlocked   = roleData.filter(d => d.stars >= 90).length;
+                const hasShared      = !!(this.state.user.achievements?.sharedFirstTime);
 
-                    trophiesHtml += `
-                        <div class="trophy-card" onclick="app.openTrophyInspection('bronze')">
-                            <div class="trophy-card-viewer" style="position: relative; opacity: ${hasBronze ? '1' : '0.6'}; filter: ${hasBronze ? 'none' : 'grayscale(100%)'};">
-                                <i  class="ti ti-lock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: rgba(255,255,255,0.8); z-index: 10; display: ${hasBronze ? 'none' : 'block'};"></i>
-                                <model-viewer src="image/Trofeu.glb" disable-zoom disable-pan environment-image="neutral" exposure="0.5"></model-viewer>
-                            </div>
-                            <h4>Calouro do Salão <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
-                            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden;">
-                                <div style="width: ${hasBronze ? '100' : '0'}%; height: 100%; background: #cd7f32;"></div>
-                            </div>
-                        </div>
-                        <div class="trophy-card" onclick="app.openTrophyInspection('gold')">
-                            <div class="trophy-card-viewer" style="position: relative; opacity: ${hasGold ? '1' : '0.6'}; filter: ${hasGold ? 'none' : 'grayscale(100%)'};">
-                                <i  class="ti ti-lock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: rgba(255,255,255,0.8); z-index: 10; display: ${hasGold ? 'none' : 'block'};"></i>
-                                <model-viewer src="image/Trofeu.glb" disable-zoom disable-pan environment-image="neutral" exposure="0.5"></model-viewer>
-                            </div>
-                            <h4>Rei da Marcação <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
-                            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden;">
-                                <div style="width: ${goldPct}%; height: 100%; background: #ffd700;"></div>
-                            </div>
-                            <small style="font-size: 0.65rem; color: rgba(255,255,255,0.5);">${Math.min(starsCount, 45)}/45 ★</small>
-                        </div>
-                        <div class="trophy-card" onclick="app.openTrophyInspection('platinum')">
-                            <div class="trophy-card-viewer" style="position: relative; opacity: ${hasPlat ? '1' : '0.6'}; filter: ${hasPlat ? 'none' : 'grayscale(100%)'};">
-                                <i  class="ti ti-lock" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: rgba(255,255,255,0.8); z-index: 10; display: ${hasPlat ? 'none' : 'block'};"></i>
-                                <model-viewer src="image/Trofeu.glb" disable-zoom disable-pan environment-image="neutral" exposure="0.5"></model-viewer>
-                            </div>
-                            <h4>Patrimônio Vivo <span style="font-size: 0.65rem; color: rgba(255,255,255,0.5); display:block;">(${danceId})</span></h4>
-                            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden;">
-                                <div style="width: ${platPct}%; height: 100%; background: #e5e4e2;"></div>
-                            </div>
-                            <small style="font-size: 0.65rem; color: rgba(255,255,255,0.5);">${Math.min(starsCount, 90)}/90 ★</small>
-                        </div>
-                    `;
+                const typeToImage = {
+                    'social': 'conquista4.jpeg',
+                    'bronze': 'conquista1.jpeg',
+                    'gold':   'conquista2.jpeg',
+                    'plat':   'conquista3.jpeg'
                 };
-                
-                updateDanceProgress('casal');
-                updateDanceProgress('dama');
-                updateDanceProgress('cavalheiro');
-                
+
+                // Progress % for stacked gold/plat badges = best-performing role
+                const bestGoldPct = Math.min(Math.max(...roleData.map(d => (d.stars / 45) * 100)), 100);
+                const bestPlatPct = Math.min(Math.max(...roleData.map(d => (d.stars / 90) * 100)), 100);
+
+                let unlockedCount = (hasShared ? 1 : 0) + bronzeUnlocked + goldUnlocked + platUnlocked;
+
+                // ── Stacked badge builder ─────────────────────────────
+                // unlockedN = how many of the 3 roles have this trophy
+                const makeStackedBadge = (type, emoji, name, unlockedN, progPct) => {
+                    const nLayers  = Math.min(unlockedN, 1); // show stack only when >= 1
+                    const locked   = unlockedN === 0;
+                    const pct      = Math.round(Math.min(progPct, 100));
+                    const dots     = roles.map((_, i) =>
+                        `<span class="trophy-role-dot${i < unlockedN ? ' done' : ''}"></span>`
+                    ).join('');
+                    const layers   = unlockedN >= 1
+                        ? `<div class="trophy-badge-layer trophy-badge-layer--2"></div>
+                           <div class="trophy-badge-layer trophy-badge-layer--3"></div>`
+                        : '';
+                    const countPip = unlockedN > 0
+                        ? `<div class="trophy-badge-count">${unlockedN}/3</div>` : '';
+
+                    return `
+                    <div class="trophy-card" onclick="app.openTrophyInspection('${type}')">
+                        <div class="trophy-badge trophy-badge--${type}${locked ? ' trophy-badge--locked' : ''}">
+                            ${layers}
+                            <div class="trophy-badge-outer">
+                                <div class="trophy-badge-inner">
+                                    <img src="image/${typeToImage[type]}" class="trophy-img" alt="${name}">
+                                    ${locked ? '<div class="trophy-badge-lock-ico"><i class="ti ti-lock" aria-hidden="true"></i></div>' : ''}
+                                </div>
+                            </div>
+                            ${countPip}
+                        </div>
+                        <h4>${name}</h4>
+                        <div class="trophy-role-dots">${dots}</div>
+                        <div class="trophy-prog" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="trophy-prog-fill trophy-prog-fill--${type}" style="width:${pct}%"></div>
+                        </div>
+                    </div>`;
+                };
+
+                // ── Single badge (social) ─────────────────────────────
+                const makeSingleBadge = (type, emoji, name, isUnlocked) => {
+                    const locked = !isUnlocked;
+                    return `
+                    <div class="trophy-card" onclick="app.openTrophyInspection('influencer')">
+                        <div class="trophy-badge trophy-badge--${type}${locked ? ' trophy-badge--locked' : ''}">
+                            <div class="trophy-badge-outer">
+                                <div class="trophy-badge-inner">
+                                    <img src="image/${typeToImage[type]}" class="trophy-img" alt="${name}">
+                                    ${locked ? '<div class="trophy-badge-lock-ico"><i class="ti ti-lock" aria-hidden="true"></i></div>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <h4>${name}</h4>
+                        <span class="trophy-card-sub" style="font-size:.58rem;opacity:.5;color:var(--text-main)">1 share</span>
+                        <div class="trophy-prog" role="progressbar" aria-valuenow="${isUnlocked?100:0}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="trophy-prog-fill trophy-prog-fill--${type}" style="width:${isUnlocked?100:0}%"></div>
+                        </div>
+                    </div>`;
+                };
+
+                // ── Section header ────────────────────────────────────
+                const sectionHeader = (label, chip, soon = false) => `
+                    <div class="trophy-section-header">
+                        <span class="trophy-section-label">${label}</span>
+                        <div class="trophy-section-line"></div>
+                        <span class="trophy-section-chip${soon ? ' trophy-section-chip--soon' : ''}">${chip}</span>
+                    </div>`;
+
+                // ── Coming-soon row (3 phantom badges) ───────────────
+                const soonRow = () => `
+                    <div class="trophy-soon-row" aria-hidden="true">
+                        <div class="trophy-soon-badge"></div>
+                        <div class="trophy-soon-badge"></div>
+                        <div class="trophy-soon-badge"></div>
+                        <div class="trophy-soon-badge"></div>
+                    </div>`;
+
+                // ── Build HTML ────────────────────────────────────────
+                // Quadrilha section
+                trophiesHtml += sectionHeader('Quadrilha', 'disponível');
+                trophiesHtml += makeSingleBadge('social', '🌸', 'Embaixador Junino', hasShared);
+                trophiesHtml += makeStackedBadge('bronze', '👟', 'Calouro do Salão', bronzeUnlocked, bronzeUnlocked > 0 ? 100 : 0);
+                trophiesHtml += makeStackedBadge('gold',   '🪗', 'Rei da Marcação',  goldUnlocked,   bestGoldPct);
+                trophiesHtml += makeStackedBadge('plat',   '💃', 'Patrimônio Vivo',  platUnlocked,   bestPlatPct);
+
+                // Coming soon sections
+                trophiesHtml += sectionHeader('Afro', 'em breve', true) + soonRow();
+                trophiesHtml += sectionHeader('Hip-Hop', 'em breve', true) + soonRow();
+                trophiesHtml += sectionHeader('Gaúcha', 'em breve', true) + soonRow();
+
                 if (trophiesAll) trophiesAll.innerHTML = trophiesHtml;
+
+                // Update count in header
+                const countEl = document.getElementById('trophies-unlocked-count');
+                if (countEl) countEl.textContent = unlockedCount;
             }
         } else {
             guestEl.style.display = 'flex';
@@ -1967,7 +2072,7 @@ const app = {
 
         if (!this.state.isLoggedIn || !this.state.user || !this.state.user.progress) {
             const headingEl = document.getElementById('resume-section-title');
-            if (headingEl) headingEl.innerText = 'Sua jornada começa aqui 🎉';
+            if (headingEl) headingEl.innerText = 'Sua jornada começa aqui';
             if (tagEl) tagEl.innerText = 'QUADRILHA - CASAL';
             if (titleEl) titleEl.innerText = 'Marcação Básica';
             if (pctEl) pctEl.innerText = '0% concluído';
@@ -1976,12 +2081,12 @@ const app = {
             card.onclick = () => this.navigate('trilhas');
             return;
         }
-        
+
         // Find the role with the most recent progress
         let lastDance = null;
         let lastLesson = null;
         let highestDate = 0;
-        
+
         Object.keys(this.state.user.progress).forEach(danceKey => {
             this.state.user.progress[danceKey].forEach(lesson => {
                 const d = new Date(lesson.date).getTime();
@@ -1992,11 +2097,11 @@ const app = {
                 }
             });
         });
-        
+
         if (!lastDance) {
             // Tem conta mas nenhuma aula concluída ainda
             const headingEl = document.getElementById('resume-section-title');
-            if (headingEl) headingEl.innerText = 'Sua jornada começa aqui 🎉';
+            if (headingEl) headingEl.innerText = 'Sua jornada começa aqui';
             if (tagEl) tagEl.innerText = 'QUADRILHA - CASAL';
             if (titleEl) titleEl.innerText = 'Marcação Básica';
             if (pctEl) pctEl.innerText = '0% concluído';

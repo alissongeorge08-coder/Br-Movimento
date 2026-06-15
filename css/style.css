@@ -195,7 +195,7 @@ input { font-family: var(--font-body); }
     flex: 1;
     min-height: 500px; flex-shrink: 0;
     position: relative;
-    background-image: url('../image/hero-bg.jpeg');
+    background-image: url('../image/fundo-inicio.jpeg');
     background-size: cover; background-position: center;
     display: flex; align-items: flex-end;
     overflow: hidden;
@@ -400,38 +400,13 @@ input { font-family: var(--font-body); }
     position: relative;
     min-height: 0;
 }
-.dance-card--yellow .dance-card-img { background: #fee97a; }
-
-.dance-card--pink .dance-card-img {
-    background:
-        repeating-linear-gradient(
-            -45deg,
-            transparent 0px, transparent 9px,
-            rgba(255,255,255,0.18) 9px, rgba(255,255,255,0.18) 11px
-        ),
-        #fcc5ef;
-}
-.dance-card--green .dance-card-img {
-    background:
-        repeating-linear-gradient(
-            -45deg,
-            transparent 0px, transparent 9px,
-            rgba(255,255,255,0.12) 9px, rgba(255,255,255,0.12) 11px
-        ),
-        #1a6b30;
-}
-.dance-card--maroon .dance-card-img {
-    background:
-        repeating-linear-gradient(
-            -45deg,
-            transparent 0px, transparent 9px,
-            rgba(255,255,255,0.1) 9px, rgba(255,255,255,0.1) 11px
-        ),
-        #6e1a1e;
-}
+.dance-card--yellow .dance-card-img { background: url('../image/danca_quadrilha.jpeg') center/cover no-repeat, #fee97a; }
+.dance-card--pink .dance-card-img { background: url('../image/danca_afro.jpeg') center/cover no-repeat, #fcc5ef; }
+.dance-card--green .dance-card-img { background: url('../image/danca_hiphop.jpeg') center/cover no-repeat, #1a6b30; }
+.dance-card--maroon .dance-card-img { background: url('../image/danca_gaucha.jpeg') center/cover no-repeat, #6e1a1e; }
 
 .dance-card--yellow .dance-card-img--quadrilha {
-    background: url('../image/Quadrilha.jpeg') center/cover no-repeat, #fee97a;
+    background: url('../image/danca_quadrilha.jpeg') center/cover no-repeat, #fee97a;
     min-height: 130px;
     flex: 1;
 }

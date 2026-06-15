@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0"
         rel="stylesheet" />
@@ -21,8 +21,8 @@
     <!-- Styles -->
     <link href="css/main.css" rel="stylesheet">
 
-    <!-- Lottie (animações vetoriais — confete) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <!-- Lottie (animações vetoriais) -->
+    <script src="https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js"></script>
 </head>
 
 <body>
@@ -175,31 +175,20 @@
 
         <!-- ==================== VIEW: LANDING ==================== -->
         <section id="view-landing" class="view active" aria-label="Boas-vindas">
-            <div class="hero">
-                <div class="hero-overlay"></div>
-                <header class="hero-content">
+            <div class="landing-screen">
 
-                    <!-- ── Logo mark ── -->
-                    <div class="brand-logo" aria-label="BR + Movimento">
-                        <div class="brand-row">
-                            <span class="brand-br">BR</span>
-                            <div class="brand-plus" aria-hidden="true">
-                                <span></span><span class="bp-y"></span><span></span>
-                                <span class="bp-o"></span><span class="bp-g"></span><span class="bp-p"></span>
-                                <span></span><span class="bp-b"></span><span></span>
-                            </div>
-                        </div>
-                        <span class="brand-movimento">Movimento</span>
-                    </div>
+                <!-- ── Marca ── -->
+                <div class="landing-brand" aria-label="BR + Movimento">
+                    <img src="image/logo-brplus.svg" alt="BR+" class="landing-logo-brplus">
+                    <img src="image/logo-movimento.svg" alt="Movimento" class="landing-logo-movimento">
+                </div>
 
-                    <p class="hero-sub">Aprenda as danças que fazem o Brasil dançar.</p>
+                <p class="landing-sub">Aprenda a dançar com o ritmo brasileiro.</p>
 
-                    <button class="btn-landing-cta" onclick="app.navigate('home')" id="cta-explorar">
-                        Explorar Ritmos
-                        <i class="ti ti-arrow-right"></i>
-                    </button>
+                <button class="btn-landing-cta" onclick="app.navigate('home')" id="cta-explorar">
+                    Explorar Ritmos
+                </button>
 
-                </header>
             </div>
         </section>
 
@@ -209,60 +198,63 @@
 
                 <!-- ===== SOBRE ===== -->
                 <h2 class="section-title" style="margin-top: 16px;">Sobre o projeto</h2>
-                <div class="resume-card" onclick="app.navigate('sobre')" role="button" tabindex="0"
-                    style="background: #fd5e29; padding: 24px 20px;">
-                    <div class="resume-info" style="width: 100%;">
-                        <h3 class="resume-title" style="font-size: 2.2rem; white-space: normal; font-weight: 800; letter-spacing: -0.5px;">BR + Movimento</h3>
-                    </div>
+                <div class="btn-sobre-projeto" onclick="app.navigate('sobre')" role="button" tabindex="0"
+                    aria-label="Sobre BR + Movimento">
+                    BR + Movimento
                 </div>
 
                 <h2 class="section-title" id="resume-section-title">Continue de onde parou</h2>
                 <div class="resume-card" id="resume-card" onclick="app.navigate('trilhas'); app.switchTrilhaTab('casal');"
-                    role="button" tabindex="0" aria-label="Continuar Trilhas"
-                    style="background: #0470dd; padding: 24px 20px 20px;">
-                    <div class="resume-info" style="width: 100%;">
-                        <p class="resume-tag" id="resume-tag" style="margin-bottom: 4px; font-size: 0.65rem; font-weight: 700; opacity: 0.9; letter-spacing: 0.5px; text-transform: uppercase;">QUADRILHA - CASAL</p>
-                        <h3 class="resume-title" id="resume-title" style="font-size: 2.2rem; font-weight: 800; white-space: normal; letter-spacing: -0.5px; margin-bottom: 24px;">Marcação Básica</h3>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px;">
-                            <span id="resume-time" style="font-size: 0.75rem; color: #fff;">Comece agora</span>
-                            <span id="resume-pct" style="font-size: 0.75rem; color: #fff;">0% concluído</span>
+                    role="button" tabindex="0" aria-label="Continuar Trilhas">
+                    <div class="resume-info">
+                        <p class="resume-tag" id="resume-tag">QUADRILHA - CASAL</p>
+                        <h3 class="resume-title" id="resume-title">Marcação Básica</h3>
+                        <div class="resume-meta-row">
+                            <span id="resume-time" class="resume-meta-text">Comece agora</span>
+                            <span id="resume-pct" class="resume-meta-text">0% concluído</span>
                         </div>
-                        <div class="resume-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
-                            aria-valuemax="100" style="height: 6px; background: rgba(0,0,0,0.25); border-radius: 4px; margin-bottom: 0;">
-                            <div class="resume-progress-fill" id="resume-progress-fill" style="width: 0%; height: 100%; background: #fff; border-radius: 4px; transition: width 0.5s ease;"></div>
+                        <div class="resume-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            <div class="resume-progress-fill" id="resume-progress-fill" style="width: 0%;"></div>
                         </div>
                     </div>
                 </div>
 
-                <h2 class="section-title">Danças em destaque</h2>
+                <h2 class="section-title">Danças</h2>
                 <div class="dance-grid" role="list">
                     <article class="dance-card dance-card--yellow" role="listitem" onclick="app.navigate('quadrilha')">
                         <div class="dance-card-img dance-card-img--quadrilha" aria-hidden="true">
                             <span class="dance-card-badge">54 vídeos</span>
                         </div>
                         <div class="dance-card-body">
+                            <p class="dance-card-sub">Tradição em cada passo</p>
                             <h3>Quadrilha</h3>
                         </div>
                     </article>
                     <article class="dance-card dance-card--pink" role="listitem">
-                        <div class="dance-card-img" aria-hidden="true"></div>
+                        <div class="dance-card-img" aria-hidden="true">
+                            <span class="dance-card-badge">Em breve</span>
+                        </div>
                         <div class="dance-card-body">
-                            <p class="dance-card-sub">Uma nova jornada</p>
-                            <h3>Em breve</h3>
+                            <p class="dance-card-sub">Uma nova jornada em breve</p>
+                            <h3>Afro</h3>
                         </div>
                     </article>
                     <article class="dance-card dance-card--green" role="listitem">
-                        <div class="dance-card-img" aria-hidden="true"></div>
+                        <div class="dance-card-img" aria-hidden="true">
+                            <span class="dance-card-badge">Em breve</span>
+                        </div>
                         <div class="dance-card-body">
-                            <p class="dance-card-sub">Uma nova jornada</p>
-                            <h3>Em breve</h3>
+                            <p class="dance-card-sub">Uma nova jornada em breve</p>
+                            <h3>HipHop</h3>
                         </div>
                     </article>
                     <article class="dance-card dance-card--maroon" role="listitem">
-                        <div class="dance-card-img" aria-hidden="true"></div>
+                        <div class="dance-card-img" aria-hidden="true">
+                            <span class="dance-card-badge">Em breve</span>
+                        </div>
                         <div class="dance-card-body">
-                            <p class="dance-card-sub">Uma nova jornada</p>
-                            <h3>Em breve</h3>
+                            <p class="dance-card-sub">Uma nova jornada em breve</p>
+                            <h3>Gaúcha</h3>
                         </div>
                     </article>
                 </div>
@@ -289,16 +281,12 @@
                 </button>
             </div>
 
-            <div class="trilhas-dino-progress">
-                <p class="dino-journey-label">Sua Jornada</p>
-                <div style="position: relative; width: 100%; height: 2px; background: var(--trilha-border, rgba(253,94,41,0.18)); margin: 20px 0 10px;">
-                    <div id="dino-progress-fill" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--trilha-color, var(--primary)); transition: width 0.5s ease;"></div>
-
-                    <div style="position: absolute; left: 0%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-horse-toy" style="color: var(--trilha-color, var(--primary));"></i></div>
-                    <div style="position: absolute; left: 25%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-cactus" style="color: var(--accent-green);"></i></div>
-                    <div style="position: absolute; left: 50%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-sun-filled" style="color: var(--secondary);"></i></div>
-                    <div style="position: absolute; left: 75%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-flame" style="color: var(--primary);"></i></div>
-                    <div style="position: absolute; left: 100%; top: -14px; font-size: 18px; transform: translateX(-50%); background: var(--bg-color); padding: 0 4px; border-radius: 50%;"><i class="ti ti-trophy-filled" style="color: var(--secondary);"></i></div>
+            <div class="trilhas-jornada">
+                <p class="jornada-label">Sua Jornada</p>
+                <div class="jornada-track" id="jornada-track"
+                    role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div class="jornada-fill" id="jornada-fill"></div>
+                    <div class="jornada-dots" id="jornada-dots"></div>
                 </div>
             </div>
 
@@ -669,16 +657,27 @@
                 <button class="back-btn-inline" onclick="app.navigate('profile')" aria-label="Voltar ao perfil">
                     <i  class="ti ti-arrow-left"></i>
                 </button>
-                <h2>Minhas Conquistas</h2>
+                <h2>Conquistas</h2>
             </header>
-            <main class="dance-detail-content" style="padding-top: 20px; padding-bottom: 80px;">
-                <p class="dance-description" style="text-align: center; margin-bottom: 24px;">Toque em um troféu para
-                    abrir a inspeção 3D e descobrir como conquistá-lo.</p>
+            <main class="dance-detail-content" style="padding-top: 16px; padding-bottom: 80px;">
 
-                <h3 class="section-title" style="font-size: 1.1rem; padding: 0 16px; margin-bottom: 12px;">Galeria de Troféus</h3>
-                <div class="trophies-gallery" style="margin-bottom: 32px; flex-wrap: wrap; justify-content: center; gap: 16px;" id="trophies-all">
-                    <!-- Dynamic Trophies injected here -->
+                <div class="trophies-header">
+                    <div class="trophies-header-deco">
+                        <div class="trophies-header-line"></div>
+                        <span class="trophies-header-title">Meus Troféus</span>
+                        <div class="trophies-header-line"></div>
+                    </div>
+                    <span class="trophies-header-count" id="trophies-unlocked-count">0</span>
+                    <span class="trophies-header-sub">conquistas desbloqueadas</span>
                 </div>
+
+                <div class="trophies-gallery" id="trophies-all">
+                    <!-- Dynamic badges injected by JS -->
+                </div>
+
+                <p class="dance-description" style="text-align: center; font-size: 0.72rem; opacity: 0.45; padding: 0 20px;">
+                    Toque em um troféu para abrir a inspeção 3D
+                </p>
             </main>
         </section>
 
@@ -692,9 +691,9 @@
                     <i  class="ti ti-x"></i>
                 </button>
 
-                <model-viewer id="fullscreen-trophy-viewer" src="image/Trofeu.glb" auto-rotate camera-controls
-                    environment-image="neutral" exposure="1" shadow-intensity="1">
-                </model-viewer>
+                <div class="trophy-fullscreen-img-container">
+                    <img id="fullscreen-trophy-img" src="" alt="Trophy Zoom">
+                </div>
 
                 <div class="trophy-fullscreen-info">
                     <h2 id="fs-trophy-title">Troféu</h2>
@@ -711,59 +710,85 @@
                 </button>
                 <h2>Sobre</h2>
             </header>
-            <main class="dance-detail-content" style="padding-top: 20px;">
-                <h3 style="margin-bottom: 12px; font-size: 1.5rem; color: var(--primary); font-weight: 800; letter-spacing: -0.5px;">Brasil em Movimento</h3>
+            <main style="padding-bottom: 48px;">
 
-                <p class="dance-description" style="padding: 0; margin-bottom: 16px;">O <strong>Brasil em
-                        Movimento</strong> é um ecossistema digital dedicado ao ensino de danças tradicionais
-                    brasileiras, concebido para unir a preservação das nossas tradições à promoção da saúde e do
-                    bem-estar. O aplicativo é parte do projeto <strong>DESIGN DE INTERFACES PARA PROBLEMAS REAIS:
-                        EXTENSÃO DIALÓGICA COM COMUNIDADES</strong>, que no semestre 1/2026, utiliza a dança como uma
-                    ferramenta fundamental de consciência corporal, integrando ritmos que atravessam o país — desde o
-                    rigor técnico e a cadência das danças gaúchas até a energia vibrante da quadrilha e do xaxado.
-                    Através de uma interface mobile-first, o aplicativo democratiza o acesso à atividade física,
-                    transformando o aprendizado em uma jornada imersiva onde o movimento melhora a mobilidade e a saúde
-                    mental, respeitando sempre a pluralidade cultural e o tempo de evolução de cada indivíduo.</p>
-
-                <p class="dance-description" style="padding: 0; margin-bottom: 24px;">A plataforma se destaca pelo seu
-                    desenvolvimento técnico e acadêmico, sendo fruto de uma colaboração interdisciplinar de impacto
-                    social. Este projeto é uma realização do <strong>Laboratório de Projeto de Interface</strong> em
-                    conjunto com o <strong>Laboratório de Audiovisual</strong>, ambos do curso de Desenho Industrial da
-                    UFSM, unindo a expertise em design de interface e produção de conteúdo dinâmico. A fundamentação
-                    rítmica e técnica dos movimentos conta com o apoio direto do <strong>Curso de Dança da
-                        UFSM</strong>, por meio do professor Jessé Cruz, garantindo que o ensino seja pedagogicamente
-                    sólido e culturalmente autêntico. Além disso, o aplicativo cumpre um papel vital na comunidade local
-                    através da colaboração com a <strong>Escola Margarida Lopes de Santa Maria</strong>, servindo como
-                    uma ferramenta de ensino sobre saúde e movimento para estudantes da rede pública.</p>
-
-                <p class="dance-description" style="padding: 0; margin-bottom: 32px; font-weight: 500;">Esta iniciativa
-                    reflete o compromisso com a inovação no design e o respeito ao patrimônio imaterial brasileiro,
-                    transformando o celular em um palco para a saúde, a tradição e o movimento.</p>
-
-                <h3 style="margin-bottom: 16px; color: var(--primary);">Equipe de Desenvolvimento</h3>
-
-                <div
-                    style="background: var(--bg-card); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 16px;">
-                    <h4
-                        style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
-                        Professores Orientadores</h4>
-                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
-                        <li>Débora Aita Gasparetto</li>
-                        <li>Danielle Difante Pedrozzo</li>
-                    </ul>
+                <!-- Hero -->
+                <div class="sobre-hero">
+                    <h3 class="sobre-hero-title">Brasil em Movimento</h3>
+                    <div class="sobre-hero-accent">
+                        <span style="flex:3; background:var(--primary);"></span>
+                        <span style="flex:2; background:var(--secondary);"></span>
+                        <span style="flex:1; background:#1D9E75;"></span>
+                    </div>
+                    <p class="sobre-p" style="margin-bottom:0;">O <strong>Brasil em Movimento</strong> é um ecossistema digital dedicado ao ensino de danças tradicionais brasileiras, concebido para unir a preservação das nossas tradições à promoção da saúde e do bem-estar. O aplicativo é parte do projeto <em>Design de Interfaces para Problemas Reais: Extensão Dialógica com Comunidades</em>, que no semestre 1/2026 utiliza a dança como ferramenta fundamental de consciência corporal, integrando ritmos que atravessam o país — desde a cadência das danças gaúchas até a energia vibrante da quadrilha e do xaxado.</p>
                 </div>
 
-                <div
-                    style="background: var(--bg-card); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 32px;">
-                    <h4
-                        style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
-                        Alunos e Pesquisadores</h4>
-                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.95rem; line-height: 1.6;">
-                        <li><strong>Alisson George da Rosa Ferreira</strong></li>
-                        <li style="margin-top: 8px;"><strong>Rayssa Barcellos Da Silva</strong></li>
-                        <li style="margin-top: 8px;"><strong>Eduarda Dal Molin Marodim</strong></li>
-                        <li style="margin-top: 8px;"><strong>Vitoria Mello</strong></li>
-                    </ul>
+                <!-- Corpo -->
+                <div class="sobre-body" style="padding-top: 20px;">
+
+                    <p class="sobre-p">Através de uma interface mobile-first, o aplicativo democratiza o acesso à atividade física, transformando o aprendizado em uma jornada imersiva onde o movimento melhora a mobilidade e a saúde mental, respeitando sempre a pluralidade cultural e o tempo de evolução de cada indivíduo.</p>
+
+                    <p class="sobre-p">A plataforma é fruto de uma colaboração interdisciplinar de impacto social, realizada pelo <strong>Laboratório de Projeto de Interface</strong> em conjunto com o <strong>Laboratório de Audiovisual</strong>, ambos do curso de Desenho Industrial da UFSM. A fundamentação rítmica e técnica conta com o apoio do <strong>Curso de Dança da UFSM</strong>, pelo professor Jessé Cruz, garantindo ensino pedagogicamente sólido e culturalmente autêntico. Além disso, o aplicativo colabora com a <strong>Escola Margarida Lopes de Santa Maria</strong>, servindo como ferramenta de saúde e movimento para estudantes da rede pública.</p>
+
+                    <div class="sobre-highlight">
+                        <p>Esta iniciativa reflete o compromisso com a inovação no design e o respeito ao patrimônio imaterial brasileiro — transformando o celular em um palco para a saúde, a tradição e o movimento.</p>
+                    </div>
+
+                    <!-- Equipe -->
+                    <p class="sobre-section-title">Equipe</p>
+
+                    <div class="sobre-team-group">
+                        <p class="sobre-team-group-label">Professores Orientadores</p>
+
+                        <div class="sobre-member">
+                            <div class="sobre-avatar sobre-avatar--orange">DAG</div>
+                            <div>
+                                <p class="sobre-member-name">Débora Aita Gasparetto</p>
+                                <p class="sobre-member-role">Orientadora — Lab. de Projeto de Interface</p>
+                            </div>
+                        </div>
+                        <div class="sobre-member">
+                            <div class="sobre-avatar sobre-avatar--orange">DDP</div>
+                            <div>
+                                <p class="sobre-member-name">Danielle Difante Pedrozzo</p>
+                                <p class="sobre-member-role">Orientadora — Lab. de Audiovisual</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sobre-team-group">
+                        <p class="sobre-team-group-label">Alunos e Pesquisadores</p>
+
+                        <div class="sobre-member">
+                            <div class="sobre-avatar sobre-avatar--yellow">AG</div>
+                            <div>
+                                <p class="sobre-member-name">Alisson George da Rosa Ferreira</p>
+                                <p class="sobre-member-role">Design de Interface &amp; Desenvolvimento</p>
+                            </div>
+                        </div>
+                        <div class="sobre-member">
+                            <div class="sobre-avatar sobre-avatar--teal">RB</div>
+                            <div>
+                                <p class="sobre-member-name">Rayssa Barcellos Da Silva</p>
+                                <p class="sobre-member-role">Design System — paleta, tipografia &amp; identidade visual</p>
+                            </div>
+                        </div>
+                        <div class="sobre-member">
+                            <div class="sobre-avatar sobre-avatar--teal">EM</div>
+                            <div>
+                                <p class="sobre-member-name">Eduarda Dal Molin Marodim</p>
+                                <p class="sobre-member-role">Pesquisa &amp; Conteúdo</p>
+                            </div>
+                        </div>
+                        <div class="sobre-member">
+                            <div class="sobre-avatar sobre-avatar--teal">VM</div>
+                            <div>
+                                <p class="sobre-member-name">Vitoria Mello</p>
+                                <p class="sobre-member-role">Pesquisa &amp; Conteúdo</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </main>
         </section>
@@ -1266,9 +1291,7 @@
     <div id="confetti-overlay" aria-hidden="true"></div>
     <!-- Overlay de troféu (Lottie) -->
     <div id="trophy-overlay" aria-hidden="true"></div>
-
-    <!-- 3D Model Viewer Script -->
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+    <!-- Scripts -->
     <script src="js/main.js"></script>
 </body>
 
